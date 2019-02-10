@@ -43,13 +43,19 @@ const styles = StyleSheet.create({
   titleText: {
     color: 'white',
     fontSize: 30,
-    // fontFamily: 'bold',
+    fontFamily: 'regular',
   },
   loginInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderBottomWidth: 0,
     padding: 3,
     borderRadius: 25,
+  },
+  formText: {
+    marginLeft: 10,
+    fontFamily: 'light',
+    color: 'white',
+    fontSize: 14,
   },
   loginForm: {
     flex: 1,
@@ -93,7 +99,7 @@ class LoginScreen extends Component {
                   )}
                   containerStyle={{ marginVertical: 10 }}
                   inputContainerStyle={styles.loginInput}
-                  inputStyle={{ marginLeft: 10, color: 'white' }}
+                  inputStyle={styles.formText}
                   keyboardAppearance="light"
                   returnKeyType="next"
                   onSubmitEditing={() => {
@@ -113,7 +119,7 @@ class LoginScreen extends Component {
                   secureTextEntry
                   inputContainerStyle={styles.loginInput}
                   containerStyle={{ marginVertical: 10 }}
-                  inputStyle={{ marginLeft: 10, color: 'white' }}
+                  inputStyle={styles.formText}
                   keyboardAppearance="light"
                   returnKeyType="done"
                   autoCapitalize="none"
@@ -134,15 +140,15 @@ class LoginScreen extends Component {
                   borderWidth: 0,
                 }}
                 containerStyle={{ marginVertical: 10 }}
-                titleStyle={{ fontWeight: 'bold', color: 'white' }}
+                titleStyle={{ fontFamily: 'bold', color: 'white' }}
               />
               <View style={styles.footerView}>
-                <Text style={{ color: 'black' }}>No account yet?</Text>
+                <Text style={{ fontFamily: 'regular', color: 'black' }}>No account yet?</Text>
                 <Button
                   title="Sign Up"
                   clear
                   activeOpacity={0.5}
-                  titleStyle={{ color: 'white', fontSize: 15 }}
+                  titleStyle={{ fontFamily: 'bold', color: 'white', fontSize: 15 }}
                   containerStyle={{ marginTop: -10 }}
                   buttonStyle={{ backgroundColor: 'transparent' }}
                   onPress={() => navigate('SignUp')}

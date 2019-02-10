@@ -8,13 +8,12 @@ import {
 } from 'react-native';
 import InputScrollView from 'react-native-input-scroll-view';
 
-import { Button, Input, Image } from 'react-native-elements';
+import { Button, Input } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-const TITLE_IMAGE = require('../../assets/dog.png');
 const BG_IMAGE = require('../../assets/home-bg.jpg');
 
 const styles = StyleSheet.create({
@@ -32,13 +31,14 @@ const styles = StyleSheet.create({
   },
   loginView: {
     backgroundColor: 'transparent',
-    width: 250,
+    width: 300,
     height: SCREEN_HEIGHT,
   },
   loginTitle: {
     marginTop: 100,
   },
   titleText: {
+    fontFamily: 'regular',
     color: 'white',
     textAlign: 'center',
   },
@@ -48,12 +48,30 @@ const styles = StyleSheet.create({
     padding: 3,
     borderRadius: 25,
   },
+  formText: {
+    marginLeft: 10,
+    fontFamily: 'light',
+    color: 'white',
+    fontSize: 14,
+  },
   loginForm: {
     flex: 1,
     alignItems: 'center',
     marginTop: 25,
   },
+  error: {
+    fontFamily: 'light',
+    color: 'rgba(200, 48, 66, 1)',
+    textAlign: 'center',
+    fontSize: 12,
+  },
 });
+
+const validateEmail = (email) => {
+  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+  return re.test(email);
+};
 
 class SignUpScreen extends Component {
   static navigationOptions = {
@@ -65,7 +83,20 @@ class SignUpScreen extends Component {
     },
   }
 
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      email: '',
+      emailValid: true,
+    };
+  }
+
   render() {
+    const {
+      email, emailValid,
+    } = this.state;
+
     return (
       <View style={styles.container}>
         <InputScrollView keyboardOffset={80}>
@@ -73,7 +104,9 @@ class SignUpScreen extends Component {
             <View style={styles.loginView}>
               <View style={styles.loginTitle}>
                 <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-                  <Text style={styles.titleText}>Ready to show the world your amazing pet?</Text>
+                  <Text style={styles.titleText}>
+                    Ready to show the world your awesome companion?
+                  </Text>
                   <Text style={styles.titleText}>Register below.</Text>
                 </View>
               </View>
@@ -90,11 +123,11 @@ class SignUpScreen extends Component {
                   )}
                   containerStyle={{ marginVertical: 10 }}
                   inputContainerStyle={styles.loginInput}
-                  inputStyle={{ marginLeft: 10, color: 'white' }}
+                  inputStyle={styles.formText}
                   keyboardAppearance="light"
                   returnKeyType="next"
                   onSubmitEditing={() => {
-                    this.passwordInput.focus();
+                    this.emailInput.focus();
                   }}
                 />
                 <Input
@@ -107,14 +140,28 @@ class SignUpScreen extends Component {
                       size={25}
                     />
                   )}
+                  onChangeText={value => this.setState({ email: value })}
+                  value={email}
                   containerStyle={{ marginVertical: 10 }}
                   inputContainerStyle={styles.loginInput}
-                  inputStyle={{ marginLeft: 10, color: 'white' }}
+                  autoFocus={false}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  inputStyle={styles.formText}
+                  keyboardType="email-address"
                   keyboardAppearance="light"
                   returnKeyType="next"
+                  ref={(input) => { this.emailInput = input; }}
                   onSubmitEditing={() => {
+                    const valid = validateEmail(email);
+                    this.setState({ emailValid: valid });
+                    if (!valid) { this.emailInput.shake(); }
                     this.passwordInput.focus();
                   }}
+                  errorStyle={styles.error}
+                  errorMessage={
+                    emailValid ? null : 'Please enter a valid email address.'
+                  }
                 />
                 <Input
                   placeholder="Password"
@@ -129,13 +176,16 @@ class SignUpScreen extends Component {
                   secureTextEntry
                   inputContainerStyle={styles.loginInput}
                   containerStyle={{ marginVertical: 10 }}
-                  inputStyle={{ marginLeft: 10, color: 'white' }}
+                  inputStyle={styles.formText}
                   keyboardAppearance="light"
-                  returnKeyType="done"
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="default"
+                  returnKeyType="next"
                   ref={(input) => { this.passwordInput = input; }}
+                  onSubmitEditing={() => {
+                    this.confirmPasswordInput.focus();
+                  }}
                 />
                 <Input
                   placeholder="Confirm Password"
@@ -150,13 +200,13 @@ class SignUpScreen extends Component {
                   secureTextEntry
                   inputContainerStyle={styles.loginInput}
                   containerStyle={{ marginVertical: 10 }}
-                  inputStyle={{ marginLeft: 10, color: 'white' }}
+                  inputStyle={styles.formText}
                   keyboardAppearance="light"
                   returnKeyType="done"
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="default"
-                  ref={(input) => { this.passwordInput = input; }}
+                  ref={(input) => { this.confirmPasswordInput = input; }}
                 />
               </View>
               <Button
@@ -164,14 +214,15 @@ class SignUpScreen extends Component {
                 activeOpacity={1}
                 underlayColor="transparent"
                 loadingProps={{ size: 'small', color: 'white' }}
+                disabled={!emailValid}
                 buttonStyle={{
                   height: 50,
-                  width: 250,
+                  width: 300,
                   backgroundColor: 'rgba(226, 117, 137, 1)',
                   borderWidth: 0,
                 }}
                 containerStyle={{ marginVertical: 70 }}
-                titleStyle={{ fontWeight: 'bold', color: 'white' }}
+                titleStyle={{ fontFamily: 'bold', color: 'white' }}
               />
             </View>
           </ImageBackground>
