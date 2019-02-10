@@ -6,12 +6,12 @@ import {
   ImageBackground,
   Dimensions,
 } from 'react-native';
+import InputScrollView from 'react-native-input-scroll-view';
 
 import { createStackNavigator, createAppContainer } from "react-navigation";
 import firebase from './firestore';
 import { Button, Input, Image } from 'react-native-elements';
-import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
-import IconFA from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -25,79 +25,85 @@ class HomeScreen extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <ImageBackground source={BG_IMAGE} style={styles.bgImage}>
-          <View style={styles.loginView}>
-            <View style={styles.loginTitle}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.titleText}>InstaPet</Text>
-                <Image source={TITLE_IMAGE} />
+        <InputScrollView keyboardOffset={80}>
+          <ImageBackground source={BG_IMAGE} style={styles.bgImage}>
+            <View style={styles.loginView}>
+              <View style={styles.loginTitle}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.titleText}>InstaPet</Text>
+                  <Image source={TITLE_IMAGE} />
+                </View>
+              </View>
+              <View style={styles.loginForm}>
+                <Input
+                  placeholder='Username'
+                  placeholderTextColor='white'
+                  leftIcon={
+                    <Icon
+                      name="account"
+                      color="rgba(178, 91, 110, 0.5)"
+                      size={25}
+                    />
+                  }
+                  containerStyle={{ marginVertical: 10 }}
+                  inputContainerStyle={styles.loginInput}
+                  inputStyle={{ marginLeft: 10, color: 'white' }}
+                  keyboardAppearance='light'
+                  returnKeyType='next'
+                  onSubmitEditing={() => {
+                    this.passwordInput.focus();
+                  }}
+                />
+                <Input
+                  placeholder='Password'
+                  placeholderTextColor='white'
+                  leftIcon={
+                    <Icon
+                      name="lock"
+                      color="rgba(178, 91, 110, 0.5)"
+                      size={25}
+                    />
+                  }
+                  secureTextEntry={true}
+                  inputContainerStyle={styles.loginInput}
+                  containerStyle={{ marginVertical: 10 }}
+                  inputStyle={{ marginLeft: 10, color: 'white' }}
+                  keyboardAppearance='light'
+                  returnKeyType='done'
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                  keyboardType='default'
+                  ref={input => (this.passwordInput = input)}
+                />
+              </View>
+              <Button
+                title="Log In"
+                activeOpacity={1}
+                underlayColor="transparent"
+                loadingProps={{ size: 'small', color: 'white' }}
+                buttonStyle={{
+                  height: 50,
+                  width: 250,
+                  backgroundColor: 'rgba(226, 117, 137, 1)',
+                  borderWidth: 0,
+                }}
+                containerStyle={{ marginVertical: 10 }}
+                titleStyle={{ fontWeight: 'bold', color: 'white' }}
+              />
+              <View style={styles.footerView}>
+                <Text style={{ color: 'black' }}>No account yet?</Text>
+                <Button
+                  title="Sign Up"
+                  clear
+                  activeOpacity={0.5}
+                  titleStyle={{ color: 'white', fontSize: 15 }}
+                  containerStyle={{ marginTop: -10 }}
+                  buttonStyle={{ backgroundColor: 'transparent' }}
+                />
               </View>
             </View>
-            <View style={styles.loginInput}>
-              <Input
-                placeholder='Username'
-                placeholderTextColor='white'
-                leftIcon={
-                  <IconMC
-                    name="account"
-                    color="rgba(200, 200, 230, 1)"
-                    size={25}
-                  />
-                }
-                containerStyle={{ marginVertical: 10 }}
-                inputStyle={{ marginLeft: 10, color: 'white' }}
-                keyboardAppearance='light'
-                returnKeyType='next'
-              />
-              <Input
-                placeholder='Password'
-                placeholderTextColor='white'
-                leftIcon={
-                  <IconFA
-                    name="lock"
-                    color="rgba(200, 200, 230, 1)"
-                    size={25}
-                  />
-                }
-                secureTextEntry={true}
-                containerStyle={{ marginVertical: 10 }}
-                inputStyle={{ marginLeft: 10, color: 'white' }}
-                keyboardAppearance='light'
-                returnKeyType='done'
-                autoCapitalize='none'
-                autoCorrect={false}
-                keyboardType='default'
-              />
-            </View>
-            <Button
-              title="LOG IN"
-              activeOpacity={1}
-              underlayColor="transparent"
-              loadingProps={{ size: 'small', color: 'white' }}
-              buttonStyle={{
-                height: 50,
-                width: 250,
-                backgroundColor: 'transparent',
-                borderWidth: 2,
-                borderColor: 'white',
-                borderRadius: 30,
-              }}
-              containerStyle={{ marginVertical: 10 }}
-              titleStyle={{ fontWeight: 'bold', color: 'white' }}
-            />
-            <View style={styles.footerView}>
-              <Text style={{ color: 'black' }}>No account yet?</Text>
-              <Button
-                title="Sign Up"
-                clear
-                activeOpacity={0.5}
-                titleStyle={{ color: 'white', fontSize: 15 }}
-                containerStyle={{ marginTop: -10 }}
-                buttonStyle={{ backgroundColor: 'transparent' }}
-              />
-            </View>
-          </View>
-        </ImageBackground>
+          </ImageBackground>
+        </InputScrollView>
       </View>
     );
   }
@@ -132,6 +138,12 @@ const styles = StyleSheet.create({
     // fontFamily: 'bold',
   },
   loginInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderBottomWidth: 0,
+    padding: 3,
+    borderRadius: 25,
+  },
+  loginForm: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
