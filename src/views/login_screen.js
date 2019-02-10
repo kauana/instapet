@@ -70,11 +70,32 @@ const styles = StyleSheet.create({
   },
 });
 
+const validateEmail = (email) => {
+  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+  return re.test(email);
+};
+
+
 class LoginScreen extends Component {
   static navigationOptions = { header: null }
 
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      email: '',
+      emailValid: true,
+    };
+  }
+
   render() {
+    const {
+      email, emailValid,
+    } = this.state;
+
     const { navigation: { navigate } } = this.props;
+
     return (
       <View style={styles.container}>
         <InputScrollView keyboardOffset={80}>
@@ -88,23 +109,37 @@ class LoginScreen extends Component {
               </View>
               <View style={styles.loginForm}>
                 <Input
-                  placeholder="Username"
+                  placeholder="Email"
                   placeholderTextColor="white"
                   leftIcon={(
                     <Icon
-                      name="account"
+                      name="email"
                       color="rgba(178, 91, 110, 0.5)"
                       size={25}
                     />
                   )}
+                  onChangeText={value => this.setState({ email: value })}
+                  value={email}
                   containerStyle={{ marginVertical: 10 }}
                   inputContainerStyle={styles.loginInput}
+                  autoFocus={false}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   inputStyle={styles.formText}
+                  keyboardType="email-address"
                   keyboardAppearance="light"
                   returnKeyType="next"
+                  ref={(input) => { this.emailInput = input; }}
                   onSubmitEditing={() => {
+                    const valid = validateEmail(email);
+                    this.setState({ emailValid: valid });
+                    if (!valid) { this.emailInput.shake(); }
                     this.passwordInput.focus();
                   }}
+                  errorStyle={styles.error}
+                  errorMessage={
+                    emailValid ? null : 'Please enter a valid email address.'
+                  }
                 />
                 <Input
                   placeholder="Password"
