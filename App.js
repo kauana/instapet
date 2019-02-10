@@ -2,13 +2,17 @@ import React, { Component } from 'react';
 import { createStackNavigator, createAppContainer } from 'react-navigation';
 import { Text } from 'react-native';
 import { Font } from 'expo';
-import firebase from './firestore';
+
+import LaunchScreen from './src/views/launch_screen';
 import LoginScreen from './src/views/login_screen';
 import SignUpScreen from './src/views/signup_screen';
+import FeedScreen from './src/views/feed_screen';
 
 const AppNavigator = createStackNavigator({
-  Home: { screen: LoginScreen },
+  Home: { screen: LaunchScreen },
   SignUp: { screen: SignUpScreen },
+  Login: { screen: LoginScreen },
+  Main: { screen: FeedScreen },
 }, {
   headerLayoutPreset: 'center',
 });

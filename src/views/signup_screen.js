@@ -10,6 +10,7 @@ import InputScrollView from 'react-native-input-scroll-view';
 
 import { Button, Input } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import firebase from '../../firestore';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -87,14 +88,115 @@ class SignUpScreen extends Component {
     super(props);
 
     this.state = {
+      username: '',
+      usernameValid: true,
+
       email: '',
       emailValid: true,
+
+      password: '',
+      passwordValid: true,
+
+      passwordConfirmation: '',
+      passwordConfirmationValid: true,
+
+      errorMessage: null,
     };
+  }
+
+  handleSignUp = () => {
+    if (!this.validateFields()) {
+      return;
+    }
+
+    const db = firebase.firestore();
+    const { username, email, password } = this.state;
+    const usersRef = db.collection('users');
+    const { navigation } = this.props;
+
+    usersRef.where('username', '==', username).get()
+      .then((querySnapshot) => {
+        if (querySnapshot.size > 0) {
+          this.setState({ errorMessage: 'A user with this username already exists.' });
+          return;
+        }
+
+        firebase.auth()
+          .createUserWithEmailAndPassword(email, password)
+          .then(({ user }) => {
+            usersRef.add({
+              username,
+              email,
+              userID: user.uid,
+            }).then(() => {
+              navigation.navigate('Main');
+            }).catch((error) => {
+              this.setState({ errorMessage: error.message });
+            });
+          }).catch(error => this.setState({ errorMessage: error.message }));
+      });
+  }
+
+  validateUsername() {
+    const { username } = this.state;
+
+    const valid = username.length > 0;
+    this.setState({ usernameValid: valid });
+
+    if (!valid) {
+      this.usernameInput.shake();
+    }
+
+    return valid;
+  }
+
+  validateEmail() {
+    const { email } = this.state;
+
+    const valid = validateEmail(email);
+    this.setState({ emailValid: valid });
+
+    if (!valid) {
+      this.emailInput.shake();
+    }
+
+    return valid;
+  }
+
+  validatePassword() {
+    const { password, passwordConfirmation } = this.state;
+
+    const valid = password.length > 0;
+    this.setState({ passwordValid: valid });
+
+    if (!valid) {
+      this.passwordInput.shake();
+      return false;
+    }
+
+    const validConfirmation = password === passwordConfirmation;
+    this.setState({ passwordConfirmationValid: validConfirmation });
+
+    if (!validConfirmation) {
+      this.passwordConfirmationInput.shake();
+    }
+
+    return validConfirmation;
+  }
+
+  validateFields() {
+    return this.validateUsername()
+      && this.validateEmail()
+    && this.validatePassword();
   }
 
   render() {
     const {
       email, emailValid,
+      username, usernameValid,
+      password, passwordValid,
+      passwordConfirmation, passwordConfirmationValid,
+      errorMessage,
     } = this.state;
 
     return (
@@ -121,14 +223,22 @@ class SignUpScreen extends Component {
                       size={25}
                     />
                   )}
+                  onChangeText={value => this.setState({ username: value })}
+                  value={username}
                   containerStyle={{ marginVertical: 10 }}
                   inputContainerStyle={styles.loginInput}
                   inputStyle={styles.formText}
                   keyboardAppearance="light"
                   returnKeyType="next"
+                  ref={(input) => { this.usernameInput = input; }}
                   onSubmitEditing={() => {
+                    this.validateUsername();
                     this.emailInput.focus();
                   }}
+                  errorStyle={styles.error}
+                  errorMessage={
+                    usernameValid ? null : 'Please enter a valid username.'
+                  }
                 />
                 <Input
                   placeholder="Email"
@@ -153,9 +263,7 @@ class SignUpScreen extends Component {
                   returnKeyType="next"
                   ref={(input) => { this.emailInput = input; }}
                   onSubmitEditing={() => {
-                    const valid = validateEmail(email);
-                    this.setState({ emailValid: valid });
-                    if (!valid) { this.emailInput.shake(); }
+                    this.validateEmail();
                     this.passwordInput.focus();
                   }}
                   errorStyle={styles.error}
@@ -173,6 +281,8 @@ class SignUpScreen extends Component {
                       size={25}
                     />
                   )}
+                  onChangeText={value => this.setState({ password: value })}
+                  value={password}
                   secureTextEntry
                   inputContainerStyle={styles.loginInput}
                   containerStyle={{ marginVertical: 10 }}
@@ -184,8 +294,12 @@ class SignUpScreen extends Component {
                   returnKeyType="next"
                   ref={(input) => { this.passwordInput = input; }}
                   onSubmitEditing={() => {
-                    this.confirmPasswordInput.focus();
+                    this.passwordConfirmationInput.focus();
                   }}
+                  errorStyle={styles.error}
+                  errorMessage={
+                    passwordValid ? null : 'Please enter a valid password.'
+                  }
                 />
                 <Input
                   placeholder="Confirm Password"
@@ -197,6 +311,8 @@ class SignUpScreen extends Component {
                       size={25}
                     />
                   )}
+                  onChangeText={value => this.setState({ passwordConfirmation: value })}
+                  value={passwordConfirmation}
                   secureTextEntry
                   inputContainerStyle={styles.loginInput}
                   containerStyle={{ marginVertical: 10 }}
@@ -206,15 +322,23 @@ class SignUpScreen extends Component {
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="default"
-                  ref={(input) => { this.confirmPasswordInput = input; }}
+                  ref={(input) => { this.passwordConfirmationInput = input; }}
+                  errorStyle={styles.error}
+                  errorMessage={
+                    passwordConfirmationValid ? null : 'Passwords do not match.'
+                  }
                 />
+
+                {errorMessage
+                  && <Text style={[styles.error, { fontFamily: 'bold' }]}>{errorMessage}</Text>
+                }
               </View>
+
               <Button
                 title="Sign Up"
                 activeOpacity={1}
                 underlayColor="transparent"
                 loadingProps={{ size: 'small', color: 'white' }}
-                disabled={!emailValid}
                 buttonStyle={{
                   height: 50,
                   width: 300,
@@ -223,6 +347,7 @@ class SignUpScreen extends Component {
                 }}
                 containerStyle={{ marginVertical: 70 }}
                 titleStyle={{ fontFamily: 'bold', color: 'white' }}
+                onPress={this.handleSignUp}
               />
             </View>
           </ImageBackground>
