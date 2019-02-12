@@ -337,7 +337,7 @@ class SignUpScreen extends Component {
               </View>
 
               <Button
-                title="Sign Up"
+                title="Register"
                 activeOpacity={1}
                 underlayColor="transparent"
                 loadingProps={{ size: 'small', color: 'white' }}

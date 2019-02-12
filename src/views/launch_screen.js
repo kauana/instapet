@@ -43,7 +43,7 @@ class LaunchScreen extends Component {
     return (
       <View style={styles.container}>
         <ImageBackground source={BG_IMAGE} style={styles.bgImage}>
-          <ActivityIndicator size={64} color={colors.red(1)} />
+          <ActivityIndicator size="large" color={colors.red(1)} />
         </ImageBackground>
       </View>
     );
