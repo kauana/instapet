@@ -11,6 +11,7 @@ import InputScrollView from 'react-native-input-scroll-view';
 import { Button, Input } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import firebase from '../../firestore';
+import colors from '../colors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -74,11 +75,12 @@ const validateEmail = (email) => {
   return re.test(email);
 };
 
+
 class SignUpScreen extends Component {
   static navigationOptions = {
     title: 'InstaPet',
     headerTransparent: true,
-    headerTintColor: 'rgba(178, 91, 110, 0.5)',
+    headerTintColor: colors.red(1),
     headerTitleStyle: {
       color: 'white',
     },
@@ -219,7 +221,7 @@ class SignUpScreen extends Component {
                   leftIcon={(
                     <Icon
                       name="account"
-                      color="rgba(178, 91, 110, 0.5)"
+                      color={colors.green2(0.5)}
                       size={25}
                     />
                   )}
@@ -246,7 +248,7 @@ class SignUpScreen extends Component {
                   leftIcon={(
                     <Icon
                       name="email"
-                      color="rgba(178, 91, 110, 0.5)"
+                      color={colors.green2(0.5)}
                       size={25}
                     />
                   )}
@@ -277,7 +279,7 @@ class SignUpScreen extends Component {
                   leftIcon={(
                     <Icon
                       name="lock"
-                      color="rgba(178, 91, 110, 0.5)"
+                      color={colors.green2(0.5)}
                       size={25}
                     />
                   )}
@@ -307,7 +309,7 @@ class SignUpScreen extends Component {
                   leftIcon={(
                     <Icon
                       name="lock"
-                      color="rgba(178, 91, 110, 0.5)"
+                      color={colors.green2(0.5)}
                       size={25}
                     />
                   )}
@@ -342,7 +344,7 @@ class SignUpScreen extends Component {
                 buttonStyle={{
                   height: 50,
                   width: 300,
-                  backgroundColor: 'rgba(226, 117, 137, 1)',
+                  backgroundColor: colors.red(1),
                   borderWidth: 0,
                 }}
                 containerStyle={{ marginVertical: 70 }}

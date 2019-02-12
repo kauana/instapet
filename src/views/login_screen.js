@@ -10,6 +10,7 @@ import InputScrollView from 'react-native-input-scroll-view';
 
 import { Button, Input, Image } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import colors from '../colors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -114,7 +115,7 @@ class LoginScreen extends Component {
                   leftIcon={(
                     <Icon
                       name="email"
-                      color="rgba(178, 91, 110, 0.5)"
+                      color={colors.green2(0.5)}
                       size={25}
                     />
                   )}
@@ -147,7 +148,7 @@ class LoginScreen extends Component {
                   leftIcon={(
                     <Icon
                       name="lock"
-                      color="rgba(178, 91, 110, 0.5)"
+                      color={colors.green2(0.5)}
                       size={25}
                     />
                   )}
@@ -171,7 +172,7 @@ class LoginScreen extends Component {
                 buttonStyle={{
                   height: 50,
                   width: 250,
-                  backgroundColor: 'rgba(226, 117, 137, 1)',
+                  backgroundColor: colors.red(1),
                   borderWidth: 0,
                 }}
                 containerStyle={{ marginVertical: 10 }}
