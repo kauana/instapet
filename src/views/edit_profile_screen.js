@@ -44,17 +44,13 @@ class EditProfileScreen extends Component {
       name: '',
       city: '',
       gender: '',
-
-      userID: null,
     };
   }
 
   componentDidMount() {
-    const { navigation } = this.props;
-
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
-        this.setState({ userID: user.uid });
+        this.userID = user.uid;
         this.unsubscribe = db.collection('users').doc(user.uid).onSnapshot(this.onUpdate);
       }
     });
@@ -71,11 +67,13 @@ class EditProfileScreen extends Component {
   }
 
   updateProfile = () => {
+    if (!this.userID) { return; }
+
     const {
-      name, gender, city, userID,
+      name, gender, city,
     } = this.state;
 
-    db.collection('users').doc(userID).update({ name, gender, city })
+    db.collection('users').doc(this.userID).update({ name, gender, city })
       .then(() => {
         const { navigation } = this.props;
         navigation.goBack();

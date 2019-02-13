@@ -14,25 +14,7 @@ class FeedScreen extends Component {
     ),
   })
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      user: null,
-    };
-  }
-
-  componentDidMount() {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        this.setState({ user });
-      }
-    });
-  }
-
   render() {
-    const { user } = this.state;
-
     // query against cloud store starts here
     console.log('hello');
     const db = firebase.firestore();

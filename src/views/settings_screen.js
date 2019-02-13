@@ -44,17 +44,15 @@ class SettingsScreen extends Component {
     ),
   })
 
-  componentDidMount() {
+  handleLogout = () => {
     const { navigation } = this.props;
 
-    firebase.auth().onAuthStateChanged((user) => {
-      if (!user) {
-        const resetAction = StackActions.reset({
-          index: 0,
-          actions: [NavigationActions.navigate({ routeName: 'Login' })],
-        });
-        navigation.dispatch(resetAction);
-      }
+    firebase.auth().signOut().then(() => {
+      const resetAction = StackActions.reset({
+        index: 0,
+        actions: [NavigationActions.navigate({ routeName: 'Login' })],
+      });
+      navigation.dispatch(resetAction);
     });
   }
 
@@ -74,7 +72,7 @@ class SettingsScreen extends Component {
                 />
               )}
               title="Logout"
-              onPress={() => firebase.auth().signOut()}
+              onPress={this.handleLogout}
             />
           </SettingsList>
         </View>

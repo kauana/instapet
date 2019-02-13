@@ -28,8 +28,6 @@ class ProfileScreen extends Component {
   }
 
   componentDidMount() {
-    const { navigation } = this.props;
-
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         this.unsubscribe = db.collection('users').doc(user.uid).onSnapshot(this.onUpdate);
