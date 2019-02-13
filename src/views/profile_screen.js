@@ -7,7 +7,7 @@ class ProfileScreen extends Component {
   static navigationOptions = () => ({
     tabBarIcon: ({ tintColor }) => (
       <Icon
-        name="account-circle"
+        name="account"
         size={24}
         color={tintColor}
       />
