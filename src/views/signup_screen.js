@@ -129,10 +129,9 @@ class SignUpScreen extends Component {
         firebase.auth()
           .createUserWithEmailAndPassword(email, password)
           .then(({ user }) => {
-            usersRef.add({
+            usersRef.doc(user.uid).set({
               username,
               email,
-              userID: user.uid,
             }).then(() => {
               navigation.navigate('Main');
             }).catch((error) => {

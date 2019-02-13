@@ -8,6 +8,7 @@ import LaunchScreen from './src/views/launch_screen';
 import LoginScreen from './src/views/login_screen';
 import SignUpScreen from './src/views/signup_screen';
 import SettingsScreen from './src/views/settings_screen';
+import EditProfileScreen from './src/views/edit_profile_screen';
 import TabNavigator from './src/views/tab_navigator';
 
 // Silences warning due to firebase using long-timers:
@@ -27,6 +28,7 @@ const AppNavigator = createStackNavigator({
   Login: { screen: LoginScreen },
   Main: { screen: TabNavigator },
   Settings: { screen: SettingsScreen },
+  EditProfile: { screen: EditProfileScreen },
 }, {
   headerLayoutPreset: 'center',
 });
