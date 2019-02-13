@@ -6,6 +6,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { StackActions, NavigationActions } from 'react-navigation';
 import firebase from '../../firestore';
 import colors from '../colors';
 
@@ -35,7 +36,11 @@ class LaunchScreen extends Component {
     const { navigation } = this.props;
 
     firebase.auth().onAuthStateChanged((user) => {
-      navigation.navigate(user ? 'Main' : 'Login');
+      const resetAction = StackActions.reset({
+        index: 0,
+        actions: [NavigationActions.navigate({ routeName: user ? 'Main' : 'Login' })],
+      });
+      navigation.dispatch(resetAction);
     });
   }
 

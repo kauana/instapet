@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SettingsList from 'react-native-settings-list';
+import { StackActions, NavigationActions } from 'react-navigation';
 import firebase from '../../firestore';
 import colors from '../colors';
 
@@ -30,7 +31,7 @@ class SettingsScreen extends Component {
     },
     headerRight: (
       <Button
-        onPress={() => navigation.pop()}
+        onPress={() => navigation.goBack()}
         icon={(
           <Icon
             name="menu"
@@ -48,7 +49,11 @@ class SettingsScreen extends Component {
 
     firebase.auth().onAuthStateChanged((user) => {
       if (!user) {
-        navigation.navigate('Login');
+        const resetAction = StackActions.reset({
+          index: 0,
+          actions: [NavigationActions.navigate({ routeName: 'Login' })],
+        });
+        navigation.dispatch(resetAction);
       }
     });
   }

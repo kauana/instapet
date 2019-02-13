@@ -64,9 +64,6 @@ const styles = StyleSheet.create({
   error: {
     fontFamily: 'regular',
     color: colors.red(1),
-    textShadowColor: 'rgba(0, 0, 0, 0.95)',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
     textAlign: 'center',
     fontSize: 12,
   },
@@ -133,7 +130,7 @@ class SignUpScreen extends Component {
               username,
               email,
             }).then(() => {
-              navigation.navigate('Main');
+              navigation.goBack();
             }).catch((error) => {
               this.setState({ errorMessage: error.message });
             });

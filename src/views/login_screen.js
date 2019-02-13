@@ -73,9 +73,6 @@ const styles = StyleSheet.create({
   error: {
     fontFamily: 'light',
     color: colors.red(1),
-    textShadowColor: 'rgba(0, 0, 0, 0.95)',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
     textAlign: 'center',
     fontSize: 12,
   },
@@ -101,7 +98,7 @@ class LoginScreen extends Component {
     firebase.auth()
       .signInWithEmailAndPassword(email, password)
       .then(() => {
-        navigation.navigate('Main');
+        navigation.goBack();
       }).catch((error) => {
         this.setState({ errorMessage: error.message });
       });

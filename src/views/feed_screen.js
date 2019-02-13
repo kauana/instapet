@@ -23,13 +23,9 @@ class FeedScreen extends Component {
   }
 
   componentDidMount() {
-    const { navigation } = this.props;
-
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         this.setState({ user });
-      } else {
-        navigation.navigate('Login');
       }
     });
   }

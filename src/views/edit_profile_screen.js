@@ -56,8 +56,6 @@ class EditProfileScreen extends Component {
       if (user) {
         this.setState({ userID: user.uid });
         this.unsubscribe = db.collection('users').doc(user.uid).onSnapshot(this.onUpdate);
-      } else {
-        navigation.navigate('Login');
       }
     });
   }
@@ -80,7 +78,7 @@ class EditProfileScreen extends Component {
     db.collection('users').doc(userID).update({ name, gender, city })
       .then(() => {
         const { navigation } = this.props;
-        navigation.pop();
+        navigation.goBack();
       })
       .catch((error) => {
         console.error(error);
