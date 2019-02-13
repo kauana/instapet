@@ -1,32 +1,15 @@
 import React, { Component } from 'react';
 import { View, Text } from 'react-native';
-import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import firebase from '../../firestore';
-import colors from '../colors';
 
 class FeedScreen extends Component {
-  static navigationOptions = ({ navigation }) => ({
-    title: 'InstaPet',
-    headerLeft: null,
-    headerTintColor: colors.red(1),
-    headerStyle: {
-      backgroundColor: colors.green1(1),
-    },
-    headerTitleStyle: {
-      color: 'white',
-    },
-    headerRight: (
-      <Button
-        onPress={() => navigation.navigate('Settings')}
-        icon={(
-          <Icon
-            name="menu"
-            size={32}
-            color="white"
-          />
-        )}
-        type="clear"
+  static navigationOptions = () => ({
+    tabBarIcon: ({ tintColor }) => (
+      <Icon
+        name="home"
+        size={24}
+        color={tintColor}
       />
     ),
   })
@@ -188,8 +171,10 @@ class FeedScreen extends Component {
         flex: 1, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center',
       }}
       >
-        <Text>{user && user.email}</Text>
-        <Text>hello</Text>
+        <Text>Hello!</Text>
+        <Text>This is the main feed.</Text>
+        <Icon name="wrench" size={32} />
+        <Text>Under construction.</Text>
       </View>
     );
   }

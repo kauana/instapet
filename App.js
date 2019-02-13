@@ -2,13 +2,13 @@ import React, { Component } from 'react';
 import { createStackNavigator, createAppContainer } from 'react-navigation';
 import { Text, YellowBox } from 'react-native';
 import { Font } from 'expo';
-
 import _ from 'lodash';
+
 import LaunchScreen from './src/views/launch_screen';
 import LoginScreen from './src/views/login_screen';
 import SignUpScreen from './src/views/signup_screen';
 import SettingsScreen from './src/views/settings_screen';
-import FeedScreen from './src/views/feed_screen';
+import TabNavigator from './src/views/tab_navigator';
 
 // Silences warning due to firebase using long-timers:
 //   https://github.com/facebook/react-native/issues/12981
@@ -25,8 +25,8 @@ const AppNavigator = createStackNavigator({
   Home: { screen: LaunchScreen },
   SignUp: { screen: SignUpScreen },
   Login: { screen: LoginScreen },
+  Main: { screen: TabNavigator },
   Settings: { screen: SettingsScreen },
-  Main: { screen: FeedScreen },
 }, {
   headerLayoutPreset: 'center',
 });
