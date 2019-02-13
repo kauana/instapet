@@ -10,6 +10,7 @@ import InputScrollView from 'react-native-input-scroll-view';
 
 import { Button, Input, Image } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import firebase from '../../firestore';
 import colors from '../colors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -69,14 +70,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  error: {
+    fontFamily: 'light',
+    color: colors.red(1),
+    textShadowColor: 'rgba(0, 0, 0, 0.95)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
+    textAlign: 'center',
+    fontSize: 12,
+  },
 });
-
-const validateEmail = (email) => {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-  return re.test(email);
-};
-
 
 class LoginScreen extends Component {
   static navigationOptions = { header: null }
@@ -86,15 +89,26 @@ class LoginScreen extends Component {
 
     this.state = {
       email: '',
-      emailValid: true,
+      password: '',
+      errorMessage: null,
     };
   }
 
-  render() {
-    const {
-      email, emailValid,
-    } = this.state;
+  handleLogin = () => {
+    const { email, password } = this.state;
+    const { navigation } = this.props;
 
+    firebase.auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(() => {
+        navigation.navigate('Main');
+      }).catch((error) => {
+        this.setState({ errorMessage: error.message });
+      });
+  }
+
+  render() {
+    const { email, password, errorMessage } = this.state;
     const { navigation: { navigate } } = this.props;
 
     return (
@@ -132,15 +146,8 @@ class LoginScreen extends Component {
                   returnKeyType="next"
                   ref={(input) => { this.emailInput = input; }}
                   onSubmitEditing={() => {
-                    const valid = validateEmail(email);
-                    this.setState({ emailValid: valid });
-                    if (!valid) { this.emailInput.shake(); }
                     this.passwordInput.focus();
                   }}
-                  errorStyle={styles.error}
-                  errorMessage={
-                    emailValid ? null : 'Please enter a valid email address.'
-                  }
                 />
                 <Input
                   placeholder="Password"
@@ -152,6 +159,8 @@ class LoginScreen extends Component {
                       size={25}
                     />
                   )}
+                  onChangeText={value => this.setState({ password: value })}
+                  value={password}
                   secureTextEntry
                   inputContainerStyle={styles.loginInput}
                   containerStyle={{ marginVertical: 10 }}
@@ -177,6 +186,7 @@ class LoginScreen extends Component {
                 }}
                 containerStyle={{ marginVertical: 10 }}
                 titleStyle={{ fontFamily: 'bold', color: 'white' }}
+                onPress={this.handleLogin}
               />
               <View style={styles.footerView}>
                 <Text style={{ fontFamily: 'regular', color: 'black' }}>No account yet?</Text>
@@ -189,6 +199,10 @@ class LoginScreen extends Component {
                   buttonStyle={{ backgroundColor: 'transparent' }}
                   onPress={() => navigate('SignUp')}
                 />
+
+                {errorMessage
+                  && <Text style={[styles.error, { fontFamily: 'bold' }]}>{errorMessage}</Text>
+                }
               </View>
             </View>
           </ImageBackground>

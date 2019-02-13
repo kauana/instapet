@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import firebase from '../../firestore';
 import colors from '../colors';
 
-class FeedScreen extends Component {
+class SettingsScreen extends Component {
   static navigationOptions = ({ navigation }) => ({
     title: 'InstaPet',
     headerLeft: null,
@@ -18,12 +18,12 @@ class FeedScreen extends Component {
     },
     headerRight: (
       <Button
-        onPress={() => navigation.navigate('Settings')}
+        onPress={() => navigation.pop()}
         icon={(
           <Icon
             name="menu"
             size={32}
-            color="white"
+            color={colors.red(1)}
           />
         )}
         type="clear"
@@ -195,4 +195,4 @@ class FeedScreen extends Component {
   }
 }
 
-export default FeedScreen;
+export default SettingsScreen;

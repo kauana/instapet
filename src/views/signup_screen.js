@@ -62,8 +62,11 @@ const styles = StyleSheet.create({
     marginTop: 25,
   },
   error: {
-    fontFamily: 'light',
-    color: 'rgba(200, 48, 66, 1)',
+    fontFamily: 'regular',
+    color: colors.red(1),
+    textShadowColor: 'rgba(0, 0, 0, 0.95)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
     textAlign: 'center',
     fontSize: 12,
   },
@@ -75,7 +78,6 @@ const validateEmail = (email) => {
   return re.test(email);
 };
 
-
 class SignUpScreen extends Component {
   static navigationOptions = {
     title: 'InstaPet',
@@ -83,6 +85,7 @@ class SignUpScreen extends Component {
     headerTintColor: colors.red(1),
     headerTitleStyle: {
       color: 'white',
+      fontFamily: 'regular',
     },
   }
 

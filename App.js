@@ -6,12 +6,14 @@ import { Font } from 'expo';
 import LaunchScreen from './src/views/launch_screen';
 import LoginScreen from './src/views/login_screen';
 import SignUpScreen from './src/views/signup_screen';
+import SettingsScreen from './src/views/settings_screen';
 import FeedScreen from './src/views/feed_screen';
 
 const AppNavigator = createStackNavigator({
   Home: { screen: LaunchScreen },
   SignUp: { screen: SignUpScreen },
   Login: { screen: LoginScreen },
+  Settings: { screen: SettingsScreen },
   Main: { screen: FeedScreen },
 }, {
   headerLayoutPreset: 'center',
