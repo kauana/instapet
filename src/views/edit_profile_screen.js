@@ -43,7 +43,8 @@ class EditProfileScreen extends Component {
     this.state = {
       name: '',
       city: '',
-      gender: '',
+      bio: '',
+      avatar: '',
     };
   }
 
@@ -70,10 +71,12 @@ class EditProfileScreen extends Component {
     if (!this.userID) { return; }
 
     const {
-      name, gender, city,
+      name, bio, city, avatar,
     } = this.state;
 
-    db.collection('users').doc(this.userID).update({ name, gender, city })
+    db.collection('users').doc(this.userID).update({
+      name, bio, city, avatar,
+    })
       .then(() => {
         const { navigation } = this.props;
         navigation.goBack();
@@ -84,7 +87,9 @@ class EditProfileScreen extends Component {
   }
 
   render() {
-    const { name, gender, city } = this.state;
+    const {
+      name, bio, city, avatar,
+    } = this.state;
 
     return (
       <View style={{ backgroundColor: 'white', flex: 1 }}>
@@ -98,6 +103,7 @@ class EditProfileScreen extends Component {
               hasNavArrow={false}
               value={name}
               onTextChange={text => this.setState({ name: text })}
+              placeholder="Scooby Doo"
               icon={(
                 <Icon
                   name="rename-box"
@@ -114,6 +120,7 @@ class EditProfileScreen extends Component {
               hasNavArrow={false}
               value={city}
               onTextChange={text => this.setState({ city: text })}
+              placeholder="Woofland, CA"
               icon={(
                 <Icon
                   name="city"
@@ -124,15 +131,33 @@ class EditProfileScreen extends Component {
               )}
             />
             <SettingsList.Item
-              id="gender"
-              title="Gender"
+              id="bio"
+              title="Bio"
               isEditable
               hasNavArrow={false}
-              value={gender}
-              onTextChange={text => this.setState({ gender: text })}
+              value={bio}
+              onTextChange={text => this.setState({ bio: text })}
+              placeholder="Hello and welcome..."
               icon={(
                 <Icon
-                  name="gender-transgender"
+                  name="comment-text"
+                  size={24}
+                  color={colors.red(1)}
+                  style={styles.icon}
+                />
+              )}
+            />
+            <SettingsList.Item
+              id="avatar"
+              title="Avatar"
+              isEditable
+              hasNavArrow={false}
+              value={avatar}
+              onTextChange={text => this.setState({ avatar: text })}
+              placeholder="https://..."
+              icon={(
+                <Icon
+                  name="image"
                   size={24}
                   color={colors.red(1)}
                   style={styles.icon}
