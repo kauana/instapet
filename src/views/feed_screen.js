@@ -26,7 +26,7 @@ class FeedScreen extends Component {
         if (doc.exists) {
           console.log('user profile data for MLVHiDjnWdVrw6QAr3fU is :', doc.data());
         } else {
-        // doc.data() will be undefined in this case
+          // doc.data() will be undefined in this case
           console.log('No such document!');
         }
       })
@@ -36,7 +36,6 @@ class FeedScreen extends Component {
 
 
     // query 2: given a user, find all posts the user made
-
     db.collection('posts')
       .where('post_userID', '==', 'MLVHiDjnWdVrw6QAr3fU')
       .get()
@@ -84,7 +83,6 @@ class FeedScreen extends Component {
 
 
     // query 5: given a hashtag, find all posts with this hashtag
-
     db.collection('posts')
       .where('hashtag', 'array-contains', 'snow')
       .get()
@@ -100,7 +98,6 @@ class FeedScreen extends Component {
 
 
     // query 6: given a post, find all comments for this post
-
     db.collection('posts')
       .doc('KOTXpXKf1BagqattgKt5')
       .get()
@@ -113,7 +110,6 @@ class FeedScreen extends Component {
       });
 
     // query 7: given a post, find the followers that liked this post
-
     db.collection('posts')
       .doc('KOTXpXKf1BagqattgKt5')
       .get()
@@ -128,7 +124,6 @@ class FeedScreen extends Component {
 
 
     // query 8: given a user, find all the posts that the user liked
-
     db.collection('posts')
       .where('liked_by_users', 'array-contains', 't3umcEmI187GfkibsYj7')
       .get()

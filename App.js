@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { createStackNavigator, createAppContainer } from 'react-navigation';
-import { Text, YellowBox } from 'react-native';
+import { View, Text, YellowBox } from 'react-native';
 import { Font } from 'expo';
+import FlashMessage from 'react-native-flash-message';
 import _ from 'lodash';
 
 import LaunchScreen from './src/views/launch_screen';
@@ -62,7 +63,12 @@ export default class App extends Component {
     const { fontLoaded } = this.state;
 
     if (fontLoaded) {
-      return <AppContainer />;
+      return (
+        <View style={{ flex: 1 }}>
+          <AppContainer />
+          <FlashMessage position="top" />
+        </View>
+      );
     }
 
     return <Text>Loading...</Text>;

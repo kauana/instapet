@@ -307,3 +307,6 @@ class ProfileScreen extends Component {
 }
 
 export default ProfileScreen;
+
+// Source Tutorials used:
+// https://github.com/nattatorn-dev/react-native-user-profile/tree/e827360142409421458dda67b119ae9488a8f523

@@ -210,3 +210,6 @@ class LoginScreen extends Component {
 }
 
 export default LoginScreen;
+
+// Source Tutorials Used
+// https://github.com/Monte9/react-native-elements-app

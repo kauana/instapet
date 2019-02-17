@@ -55,3 +55,6 @@ TabNavigator.navigationOptions = ({ navigation }) => ({
 });
 
 export default TabNavigator;
+
+// Source Tutorials Used:
+// https://reactnavigation.org/docs/en/material-bottom-tab-navigator.html

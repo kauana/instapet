@@ -359,3 +359,6 @@ class SignUpScreen extends Component {
 }
 
 export default SignUpScreen;
+
+// Source Tutorials Used
+// https://github.com/Monte9/react-native-elements-app
