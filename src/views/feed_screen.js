@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { View, Text } from 'react-native';
 import {
+  TextInput,
+  Alert,
   Platform,
   StyleSheet,
   ActivityIndicator,
@@ -18,6 +20,19 @@ const Post = ({post}) => {
 
   const comment = post.commented_by_user;
   const listItems = comment.map((d) => <Text key={d.t3umcEmI187GfkibsYj7}>{d.t3umcEmI187GfkibsYj7}</Text>);
+  const db = firebase.firestore().collection('users')
+                .doc(post.post_userID);
+  var userName = "";
+  db.get().then((doc) => {
+    if (doc.exists) {
+  
+      userName = doc.data().username;
+      console.log(userName)
+      //console.log('user profile data for', post.post_userID, " is: " , doc.data().username);
+    } else {
+      console.log('No such document!');
+    }
+  })
 
 
   return (
@@ -26,10 +41,18 @@ const Post = ({post}) => {
       <View style={styles.textContainer}>
         <Text style={styles.title}>{post.post_userID}</Text>
         <View style={styles.likesContainer}>
+          <Button
+            onPress={() => {
+              
+              Alert.alert('You liked this post!');
+            }}
+            title="like"
+          />
           <Text style={styles.likes}>&hearts; {post.likes}</Text>
         </View>
       </View>
       <View style={styles.textContainer}>
+        <Text style={styles.title}>{userName}</Text>
         <Text style={styles.title}>{post.description}</Text>
       </View>
       <View style={styles.textContainer}>
@@ -41,6 +64,20 @@ const Post = ({post}) => {
       <View style={styles.textContainer}>
         <Text style={styles.title}>#{post.hashtag}</Text>
       </View>
+      <View style={styles.textContainer}>
+      <TextInput
+        style={styles.commentsText}
+        editable = {true}
+        placeholder= "Add a comment"
+      />
+      <Button
+            onPress={() => {
+              Alert.alert('You commented on this post!');
+            }}
+            title="Add"
+          />
+      </View>
+
     </View>
   );
 };
@@ -205,7 +242,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width,
-    height: 315,
+    height: 355,
     padding: 0,
     backgroundColor: '#fefefe',
     alignItems: 'center',
@@ -243,4 +280,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
   },
+  commentsText: {
+    height: 40, 
+    width: 300, 
+    borderColor: 'gray', 
+    borderWidth: 0},
 });
