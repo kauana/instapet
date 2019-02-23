@@ -15,18 +15,31 @@ import firebase from '../../firestore';
 const { width, height } = Dimensions.get('window');
 
 const Post = ({post}) => {
-  const comment =[{"name":"cm1"},{"name":"cm2"}];
-  const listItems = comment.map((d) => <Text key={d.name}>{d.name}</Text>);
+
+  const comment = post.commented_by_user;
+  const listItems = comment.map((d) => <Text key={d.t3umcEmI187GfkibsYj7}>{d.t3umcEmI187GfkibsYj7}</Text>);
+
 
   return (
     <View style={styles.imageContainer}>
       <Image style={styles.image} resizeMode="cover" source={{ uri: post.image_url }} />
       <View style={styles.textContainer}>
-        <Text style={styles.title}>{post.description} by {post.post_userID}</Text>
-        <Text style={styles.title}>{listItems}</Text>
+        <Text style={styles.title}>{post.post_userID}</Text>
         <View style={styles.likesContainer}>
           <Text style={styles.likes}>&hearts; {post.likes}</Text>
         </View>
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>{post.description}</Text>
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>t3umcEmI187GfkibsYj7 said:</Text>
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>{listItems}</Text>
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>#{post.hashtag}</Text>
       </View>
     </View>
   );
@@ -46,10 +59,10 @@ class FeedScreen extends Component {
     })
 
 
-
     constructor() {
       super();
-      this.ref = firebase.firestore().collection('posts');
+      this.feed_ref = firebase.firestore().collection('posts').orderBy("post_time_stamp", 'desc');
+      this.write_ref = firebase.firestore().collection('posts');
       this.unsubscribe = null;
       this.state = {
         posts: [],
@@ -58,7 +71,7 @@ class FeedScreen extends Component {
     }
   
     componentDidMount() {
-      this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate)
+      this.unsubscribe = this.feed_ref.onSnapshot(this.onCollectionUpdate)
     }
   
     componentWillUnmount() {
@@ -69,6 +82,7 @@ class FeedScreen extends Component {
       const posts = [];
       querySnapshot.forEach((doc) => {
         const { image_url, likes, description, post_userID, post_time_stamp, followers_ID, hashtag, commented_by_user } = doc.data();
+        
         posts.push({
           key: doc.id, // Document ID
           doc, // DocumentSnapshot
@@ -81,7 +95,9 @@ class FeedScreen extends Component {
           hashtag,
           commented_by_user,
         });
+ 
       });
+      
       this.setState({
         posts,
         loading: false,
@@ -91,15 +107,32 @@ class FeedScreen extends Component {
     addRandomPost = () => {
       var author_ID_array = ['t3umcEmI187GfkibsYj7', 'MLVHiDjnWdVrw6QAr3fU', 'e1LkpFNjccmNnBMpIP6D'];
       var random_author =  author_ID_array[Math.floor(Math.random() * author_ID_array.length)];
-      var hash_tag_array = ['cat','dog','rabbit'];
-      var random_hashtag = hash_tag_array[Math.floor(Math.random() * hash_tag_array.length)];
+      
+      
 
-      var random_comment = [];
+      function add_random_hashtags() {
+        var hash_tag_array = ['cat','dog','rabbit','guinea pig','bird'];
+        var random_int = Math.floor(Math.random() * hash_tag_array.length);
+        var random_hashtag = [hash_tag_array[random_int]];
 
-      for( var i=0; i< 2; i++) {
-        random_comment.push({
-                "t3umcEmI187GfkibsYj7":'cm' + Math.floor(Math.random()*10)
-        });
+        return random_hashtag
+      }
+      
+      function add_random_comments(post_userID) {
+        random_comment = []
+        if (post_userID == 'MLVHiDjnWdVrw6QAr3fU') {
+            random_comment.push({
+            "t3umcEmI187GfkibsYj7":'comment' + Math.floor(Math.random()*10)});
+            random_comment.push({
+              "e1LkpFNjccmNnBMpIP6D":'comment' + Math.floor(Math.random()*10)});
+
+        } else if (post_userID == 'e1LkpFNjccmNnBMpIP6D') {
+          random_comment.push({
+            "t3umcEmI187GfkibsYj7":'comment' + Math.floor(Math.random()*10)});
+        } else {
+          random_comment = [];
+        }
+        return random_comment
       }
 
       function add_Followers(post_userID) {
@@ -107,19 +140,21 @@ class FeedScreen extends Component {
           followers_ID = ['e1LkpFNjccmNnBMpIP6D', 't3umcEmI187GfkibsYj7']
         } else if (post_userID == 'e1LkpFNjccmNnBMpIP6D') {
           followers_ID = ['t3umcEmI187GfkibsYj7']
+        } else {
+          followers_ID = []
         }
         return followers_ID
       }
 
-      this.ref.add({
-        description: "just added! a random post" + Math.floor((Math.random() * 100) + 1),
+      this.write_ref.add({
+        description: "posted at time" + Date().toLocaleString().substring(15, 25),
         likes: Math.floor((Math.random() * 10) + 1),
         image_url: 'https://source.unsplash.com/collection/190727/300x200',
         post_userID: random_author,
         post_time_stamp: firebase.firestore.FieldValue.serverTimestamp(),
         followers_ID: add_Followers(random_author),
-        hashtag: [random_hashtag],
-        commented_by_user: random_comment,
+        hashtag: add_random_hashtags(),
+        commented_by_user: add_random_comments(random_author),
       });
     }
   
@@ -171,14 +206,14 @@ const styles = StyleSheet.create({
   imageContainer: {
     width,
     height: 315,
-    padding: 25,
+    padding: 0,
     backgroundColor: '#fefefe',
     alignItems: 'center',
     // justifyContent: 'center',
   },
   image: {
     flex: 1,
-    width: 300,
+    width,
     // height: 300,
     marginBottom: 5,
   },
