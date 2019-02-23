@@ -78,8 +78,8 @@ const styles = StyleSheet.create({
   },
   editProfileButton: {
     backgroundColor: colors.red(1),
-    borderRadius: 20,
-    height: 20,
+    borderRadius: 15,
+    height: 30,
     marginTop: 5,
   },
   userNameRow: {
