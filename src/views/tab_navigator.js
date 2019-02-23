@@ -6,12 +6,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import colors from '../colors';
 
 import FeedScreen from './feed_screen';
+import SearchScreen from './search_screen';
 import ProfileScreen from './profile_screen';
 
 const CameraScreen = () => (<View />);
 CameraScreen.navigationOptions = () => ({ tabBarIcon: ({ tintColor }) => (<Icon name="camera" size={24} color={tintColor} />) });
-const SearchScreen = () => (<View />);
-SearchScreen.navigationOptions = () => ({ tabBarIcon: ({ tintColor }) => (<Icon name="magnify" size={24} color={tintColor} />) });
 const FavoritesScreen = () => (<View />);
 FavoritesScreen.navigationOptions = () => ({ tabBarIcon: ({ tintColor }) => (<Icon name="heart" size={24} color={tintColor} />) });
 
