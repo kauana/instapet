@@ -19,6 +19,7 @@ exports.addUserToAlgolia = functions.firestore.document('users/{userID}')
       username: snap.data().username,
       name: snap.data().name,
       city: snap.data().city,
+      avatar: snap.data().avatar,
     };
     return addToAlgolia(data, 'users')
       .then(res => console.log('SUCCESS ALGOLIA user ADD', res))
@@ -34,6 +35,7 @@ exports.editUserToAlgolia = functions.firestore.document('users/{userID}')
       username: change.after.data().username,
       name: change.after.data().name,
       city: change.after.data().city,
+      avatar: change.after.data().avatar,
     };
 
     console.log('DATA in is', data);

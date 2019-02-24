@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {
   ScrollView, Animated, Platform, StyleSheet, View, Text, Image,
+  ActivityIndicator,
 } from 'react-native';
 import {
   TabView, TabBar, PagerScroll, PagerPan, SceneMap,
@@ -9,6 +10,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Button } from 'react-native-elements';
 import firebase from '../../firestore';
 import colors from '../colors';
+import UserPresenter from '../presenters/user_presenter';
 
 const db = firebase.firestore();
 
@@ -18,6 +20,11 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerContainer: {
     alignItems: 'center',
@@ -117,13 +124,25 @@ class ProfileScreen extends Component {
         color={tintColor}
       />
     ),
+    title: 'InstaPet',
+    headerTintColor: colors.red(1),
+    headerStyle: {
+      backgroundColor: colors.green1(1),
+    },
+    headerTitleStyle: {
+      color: 'white',
+    },
   })
+
 
   constructor(props) {
     super(props);
     this.unsubscribe = null;
+    const { navigation } = this.props;
+    this.userID = navigation.getParam('userID', 'NO-ID');
 
     this.state = {
+      isLoading: true,
       name: '',
       username: '',
       bio: '',
@@ -141,11 +160,7 @@ class ProfileScreen extends Component {
   }
 
   componentDidMount() {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        this.unsubscribe = db.collection('users').doc(user.uid).onSnapshot(this.onUpdate);
-      }
-    });
+    this.unsubscribe = db.collection('users').doc(this.userID).onSnapshot(this.onUpdate);
   }
 
   componentWillUnmount() {
@@ -155,7 +170,7 @@ class ProfileScreen extends Component {
   }
 
   onUpdate = (doc) => {
-    this.setState({ ...doc.data() });
+    this.setState({ ...doc.data(), isLoading: false });
   }
 
   handleIndexChange = (index) => {
@@ -206,15 +221,6 @@ class ProfileScreen extends Component {
     <PagerPan {...props} />
   ))
 
-  presentName = () => {
-    const { name, username } = this.state;
-    let text = username;
-    if (name.length > 0) {
-      text += ` (${name})`;
-    }
-    return text;
-  }
-
   renderCity = () => {
     const { city } = this.state;
     if (city.length === 0) return null;
@@ -238,9 +244,9 @@ class ProfileScreen extends Component {
   }
 
   renderContactHeader = () => {
-    const { avatar } = this.state;
     const { navigation } = this.props;
-    const defaultAvatar = 'https://www.petinsurancereview.com/sites/default/files/styles/large/public/default_images/default_pet.jpg?itok=xSpT8Z_k';
+    const { name, username, avatar } = this.state;
+    const presenter = new UserPresenter({ name, username, avatar });
 
     return (
       <View style={styles.headerContainer}>
@@ -248,13 +254,13 @@ class ProfileScreen extends Component {
           <Image
             style={styles.userImage}
             source={{
-              uri: avatar.length > 0 ? avatar : defaultAvatar,
+              uri: presenter.avatar,
             }}
           />
 
           <Button
             title=" Edit Profile"
-            onPress={() => navigation.navigate('EditProfile')}
+            onPress={() => navigation.navigate('EditProfile', { userID: this.userID })}
             titleStyle={{ fontSize: 10 }}
             buttonStyle={styles.editProfileButton}
             icon={(<Icon name="pencil" size={12} color="white" />)}
@@ -264,7 +270,7 @@ class ProfileScreen extends Component {
         <View style={styles.profileContainer}>
           <View style={styles.userRow}>
             <View style={styles.userNameRow}>
-              <Text style={styles.userNameText}>{this.presentName()}</Text>
+              <Text style={styles.userNameText}>{presenter.name}</Text>
             </View>
             {this.renderCity()}
             {this.renderBio()}
@@ -281,7 +287,15 @@ class ProfileScreen extends Component {
   renderFollowers = () => <Text>Followers</Text>
 
   render() {
-    const { tabs } = this.state;
+    const { isLoading, tabs } = this.state;
+    if (isLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator style={{ flex: 1 }} size="large" color={colors.red(1)} />
+        </View>
+      );
+    }
+
     return (
       <ScrollView style={styles.scroll}>
         <View style={styles.container}>

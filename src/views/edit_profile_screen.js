@@ -39,6 +39,8 @@ class EditProfileScreen extends Component {
   constructor(props) {
     super(props);
     this.unsubscribe = null;
+    const { navigation } = this.props;
+    this.userID = navigation.getParam('userID', 'NO-ID');
 
     this.state = {
       name: '',
@@ -49,12 +51,7 @@ class EditProfileScreen extends Component {
   }
 
   componentDidMount() {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        this.userID = user.uid;
-        this.unsubscribe = db.collection('users').doc(user.uid).onSnapshot(this.onUpdate);
-      }
-    });
+    this.unsubscribe = db.collection('users').doc(this.userID).onSnapshot(this.onUpdate);
   }
 
   componentWillUnmount() {

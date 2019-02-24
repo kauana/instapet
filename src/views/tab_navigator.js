@@ -34,6 +34,7 @@ TabNavigator.navigationOptions = ({ navigation }) => ({
   headerStyle: {
     backgroundColor: colors.green1(1),
   },
+  headerBackTitle: ' ',
   headerTitleStyle: {
     color: 'white',
   },
