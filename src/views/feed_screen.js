@@ -43,13 +43,13 @@ class FeedScreen extends Component {
 
   updateComments = (key, index) => {
 
-    // don't know how to update the single post. need some index in posts?
-    // const {description} = this.state.posts[index].description;
-    console.log('try to update')
-    console.log(key)
-    console.log(index)
+    ///// don't know how to update the single post. need some index in posts?
+    ///// const {description} = this.state.posts[index].description;
+    //console.log('try to update')
+    //console.log(key)
+    //console.log(index)
     // fire store will be updated if we redefine description as below
-    var description = "why is updateComments called without clicking add comments button?"
+    var description = "press add comment button will change the description; need to post actual comments"
 
     firebase.firestore().collection('posts').doc(key).update({
       description,
@@ -65,17 +65,20 @@ class FeedScreen extends Component {
   }
   onCollectionUpdate = (querySnapshot) => {
     const posts = [];
-    var authorUsername = "helo";
-    console.log("app user")
+    var authorUsername = "want to go to user collection and get username";
+    //console.log("app user")
     let user = firebase.auth().currentUser.uid;
+
+   
+    console.log(authorUsername)
 
     querySnapshot.forEach((doc) => {
       const { image_url, likes, description, post_userID, post_time_stamp, followers_ID, 
         hashtag, commented_by_user, likesCount, post_time_stamp_string } = doc.data();
-      //const db = firebase.firestore().collection('users').doc(post_userID);
+      /////const db = firebase.firestore().collection('users').doc(post_userID);
 
-      console.log(user);
-      console.log(followers_ID)
+      //console.log(user);
+      //console.log(followers_ID)
       if (!followers_ID) {
         return;
       }
@@ -158,7 +161,7 @@ addRandomPost = () => {
     hashtag: add_random_hashtags(),
     commented_by_user: add_random_comments(random_author),
     likesCount: 0,
-    post_time_stamp_string: Date().toLocaleString().substring(15, 25),
+    post_time_stamp_string: Date().toLocaleString().substring(0, 4) + Date().toLocaleString().substring(15, 25),
   });
 }
 
@@ -195,6 +198,9 @@ render() {
               <Text style={styles.title}>by: {item.post_userID}</Text>
             </View>
             <View style={styles.textContainer}>
+              <Text style={styles.title}>by: {item.authorUsername}</Text>
+            </View>
+            <View style={styles.textContainer}>
               <Text style={styles.title}>posted at: {item.post_time_stamp_string}</Text>
             </View>
             <View style={styles.textContainer}>
@@ -209,7 +215,7 @@ render() {
                 onTextChange={text => this.setState({ description: text })}
               />
               <Button
-                onPress={this.updateComments(item.key, index)}
+                onPress={() => this.updateComments(item.key, index)}
                 title="Add"
               />
             </View>
