@@ -7,6 +7,7 @@ import { ImagePicker, Permissions } from 'expo';
 import colors from '../colors';
 import firebase from '../../firestore';
 
+
 const styles = StyleSheet.create({
   icon: {
     marginLeft: 15,
@@ -46,55 +47,88 @@ class CreatePostScreen extends Component {
       description: '',
       hashtag: '',
       imagePath: '',
+      imageURL: '',
       hasCameraPermission: false,
     };
   }
+
+
 
   async componentDidMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
     this.setState({ hasCameraPermission: status === 'granted' });
   }
 
+
   handleUploadPhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync();
+    try{
+        if (!result.cancelled) {
+            this.uploadImage(result.uri, 'test-image')
+                    .then(() => {
+                      console.log('success');
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                    });
+                    this.getURL(result.uri);
+          }
 
-    if (!result.cancelled) {
-      this.uploadImage(result.uri, 'test-image')
-        .then(() => {
-          console.log('success');
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
+       } catch(e){ console.log(e);}
+
   }
+
 
   handleTakePhoto = async () => {
     const result = await ImagePicker.launchCameraAsync();
     if (!result.cancelled) {
-      this.uploadImage(result.uri, 'test-image')
+      this.uploadImage(result.uri)
         .then(() => {
           console.log('success');
         })
         .catch((error) => {
-          console.log(error);
+          console.log('error');
         });
     }
   }
 
 
-  uploadImage = async (uri) => {
-    const response = await fetch(uri);
-    const blob = await response.blob();
+  uploadImage = async (uri, imagename) => {
 
-    const source = response;
-    this.setState({
-      imagePath: source,
-    });
+        const blob = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.onload = function() {
+              resolve(xhr.response);
+            };
+            xhr.onerror = function(e) {
+              console.log(e);
+              reject(new TypeError('Network request failed'));
+            };
+            xhr.responseType = 'blob';
+            xhr.open('GET', uri, true);
+            xhr.send(null); })
 
-    //    var ref = firebase.storage().ref.child("/images" + imageName);
-    //    return ref.put(blob);
+
+  //      const response = await fetch(uri);
+  //      const blob = this._urlToBlob(response);
+
+        imagename = blob._data.blobId;
+
+        const ref = firebase.storage().ref().child('images/' + imagename);
+
+        return ref.put(blob);
+//        return imagename;
+
   }
+
+getURL = (uri, imagename) => {
+
+    const ref = firebase.storage().ref().child('images/' + imagename);
+    let url = ref.getDownloadUrl();
+    console.log('this is your url ' + url);
+    this.setState({imageURL: uri });
+    return ref.getDownloadURL;
+}
 
   postPhoto = () => {
     const {
@@ -104,7 +138,8 @@ class CreatePostScreen extends Component {
     this.write_ref.add({
       description,
       likes: false,
-      //  image_url: this.state.imagePath.data,
+      image_url: this.state.imageURL,
+//      image_url: this.state.imagePath.data,
       post_userID: this.userID,
       post_time_stamp: firebase.firestore.FieldValue.serverTimestamp(),
       hashtag,
@@ -221,3 +256,7 @@ class CreatePostScreen extends Component {
 }
 
 export default CreatePostScreen;// JavaScript source code
+
+
+// urlToBlob function from: https://github.com/expo/firebase-storage-upload-example/issues/14
+// https://github.com/expo/firebase-storage-upload-example/blob/master/App.js
