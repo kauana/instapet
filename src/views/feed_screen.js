@@ -10,226 +10,193 @@ import {
   Image,
   Dimensions,
   Button,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import firebase from '../../firestore';
 
 const { width, height } = Dimensions.get('window');
 
-const Post = ({post}) => {
-
-  const comment = post.commented_by_user;
-  const listItems = comment.map((d) => <Text key={d.t3umcEmI187GfkibsYj7}>{d.t3umcEmI187GfkibsYj7}</Text>);
-  const db = firebase.firestore().collection('users')
-                .doc(post.post_userID);
-  var userName = "";
-  db.get().then((doc) => {
-    if (doc.exists) {
-  
-      userName = doc.data().username;
-      console.log(userName)
-      //console.log('user profile data for', post.post_userID, " is: " , doc.data().username);
-    } else {
-      console.log('No such document!');
-    }
+class FeedScreen extends Component {
+  static navigationOptions = () => ({
+    tabBarIcon: ({ tintColor }) => (
+      <Icon
+        name="home"
+        size={24}
+        color={tintColor}
+      />
+    ),
   })
 
 
-  return (
-    <View style={styles.imageContainer}>
-      <Image style={styles.image} resizeMode="cover" source={{ uri: post.image_url }} />
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{post.post_userID}</Text>
-        <View style={styles.likesContainer}>
-          <Button
-            onPress={() => {
-              
-              Alert.alert('You liked this post!');
-            }}
-            title="like"
-          />
-          <Text style={styles.likes}>&hearts; {post.likes}</Text>
-        </View>
-      </View>
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{userName}</Text>
-        <Text style={styles.title}>{post.description}</Text>
-      </View>
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>t3umcEmI187GfkibsYj7 said:</Text>
-      </View>
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{listItems}</Text>
-      </View>
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>#{post.hashtag}</Text>
-      </View>
-      <View style={styles.textContainer}>
-      <TextInput
-        style={styles.commentsText}
-        editable = {true}
-        placeholder= "Add a comment"
-      />
-      <Button
-            onPress={() => {
-              Alert.alert('You commented on this post!');
-            }}
-            title="Add"
-          />
-      </View>
-
-    </View>
-  );
-};
+  constructor() {
+    super();
+    this.feed_ref = firebase.firestore().collection('posts').orderBy("post_time_stamp", 'desc');
+    this.write_ref = firebase.firestore().collection('posts');
+    this.unsubscribe = null;
+    this.state = {
+      posts: [],
+      loading: true,
+    };
+  }
 
 
+  updateComments = () => {
 
-class FeedScreen extends Component {
-    static navigationOptions = () => ({
-        tabBarIcon: ({ tintColor }) => (
-            <Icon
-                name="home"
-                size={24}
-                color={tintColor}
-            />
-        ),
+    // don't know how to update the single post. need some index in posts?
+    var { key, doc, image_url, likes, description, post_userID, post_time_stamp, followers_ID, hashtag, commented_by_user } = this.state.posts[0];
+    console.log('try to update')
+    console.log(description)
+    // fire store will be updated if we redefine description as below
+    //description = "description hard coded in updateComments"
+
+    firebase.firestore().collection('posts').doc(key).update({
+      description,
     })
+  }
 
 
-    constructor() {
-      super();
-      this.feed_ref = firebase.firestore().collection('posts').orderBy("post_time_stamp", 'desc');
-      this.write_ref = firebase.firestore().collection('posts');
-      this.unsubscribe = null;
-      this.state = {
-        posts: [],
-        loading: true,
-      };
+  componentDidMount() {
+    this.unsubscribe = this.feed_ref.onSnapshot(this.onCollectionUpdate)
+  }
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+  onCollectionUpdate = (querySnapshot) => {
+    const posts = [];
+    var authorUsername = "helo";
+    querySnapshot.forEach((doc) => {
+      const { image_url, likes, description, post_userID, post_time_stamp, followers_ID, hashtag, commented_by_user } = doc.data();
+      const db = firebase.firestore().collection('users')
+        .doc(post_userID);
+
+      posts.push({
+        key: doc.id, // Document ID
+        doc, // DocumentSnapshot
+        image_url,
+        likes,
+        description,
+        post_userID,
+        post_time_stamp,
+        followers_ID,
+        hashtag,
+        commented_by_user,
+        authorUsername,
+      });
+    });
+    this.setState({
+      posts,
+      loading: false,
+    });
+  }
+
+
+  addRandomPost = () => {
+    var author_ID_array = ['8tIDp1pDSnQnq3tsgNwgD1SR3ul1', 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2'];
+    var random_author = author_ID_array[Math.floor(Math.random() * author_ID_array.length)];
+
+    function add_random_hashtags() {
+      var hash_tag_array = ['cat', 'dog', 'rabbit', 'guinea pig', 'bird'];
+      var random_int = Math.floor(Math.random() * hash_tag_array.length);
+      var random_hashtag = [hash_tag_array[random_int]];
+
+      return random_hashtag
     }
-  
-    componentDidMount() {
-      this.unsubscribe = this.feed_ref.onSnapshot(this.onCollectionUpdate)
-    }
-  
-    componentWillUnmount() {
-      this.unsubscribe();
-    }
-  
-    onCollectionUpdate = (querySnapshot) => {
-      const posts = [];
-      querySnapshot.forEach((doc) => {
-        const { image_url, likes, description, post_userID, post_time_stamp, followers_ID, hashtag, commented_by_user } = doc.data();
-        
-        posts.push({
-          key: doc.id, // Document ID
-          doc, // DocumentSnapshot
-          image_url,
-          likes,
-          description,
-          post_userID,
-          post_time_stamp,
-          followers_ID,
-          hashtag,
-          commented_by_user,
+    function add_random_comments(post_userID) {
+      random_comment = []
+      if (post_userID == '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
+        random_comment.push({
+          "ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3": 'comment' + Math.floor(Math.random() * 10)
         });
- 
-      });
-      
-      this.setState({
-        posts,
-        loading: false,
-     });
-    }
-  
-    addRandomPost = () => {
-      var author_ID_array = ['t3umcEmI187GfkibsYj7', 'MLVHiDjnWdVrw6QAr3fU', 'e1LkpFNjccmNnBMpIP6D'];
-      var random_author =  author_ID_array[Math.floor(Math.random() * author_ID_array.length)];
-      
-      
+        random_comment.push({
+          'iDJKuWxNYBhz0eUzzfpIyQjD7GE2': 'comment' + Math.floor(Math.random() * 10)
+        });
 
-      function add_random_hashtags() {
-        var hash_tag_array = ['cat','dog','rabbit','guinea pig','bird'];
-        var random_int = Math.floor(Math.random() * hash_tag_array.length);
-        var random_hashtag = [hash_tag_array[random_int]];
-
-        return random_hashtag
+      } else if (post_userID == 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
+        random_comment.push({
+          "8tIDp1pDSnQnq3tsgNwgD1SR3ul1": 'comment' + Math.floor(Math.random() * 10)
+        });
+      } else {
+        random_comment = [];
       }
-      
-      function add_random_comments(post_userID) {
-        random_comment = []
-        if (post_userID == 'MLVHiDjnWdVrw6QAr3fU') {
-            random_comment.push({
-            "t3umcEmI187GfkibsYj7":'comment' + Math.floor(Math.random()*10)});
-            random_comment.push({
-              "e1LkpFNjccmNnBMpIP6D":'comment' + Math.floor(Math.random()*10)});
-
-        } else if (post_userID == 'e1LkpFNjccmNnBMpIP6D') {
-          random_comment.push({
-            "t3umcEmI187GfkibsYj7":'comment' + Math.floor(Math.random()*10)});
-        } else {
-          random_comment = [];
-        }
-        return random_comment
-      }
-
-      function add_Followers(post_userID) {
-        if (post_userID == 'MLVHiDjnWdVrw6QAr3fU') {
-          followers_ID = ['e1LkpFNjccmNnBMpIP6D', 't3umcEmI187GfkibsYj7']
-        } else if (post_userID == 'e1LkpFNjccmNnBMpIP6D') {
-          followers_ID = ['t3umcEmI187GfkibsYj7']
-        } else {
-          followers_ID = []
-        }
-        return followers_ID
-      }
-
-      this.write_ref.add({
-        description: "posted at time" + Date().toLocaleString().substring(15, 25),
-        likes: Math.floor((Math.random() * 10) + 1),
-        image_url: 'https://source.unsplash.com/collection/190727/300x200',
-        post_userID: random_author,
-        post_time_stamp: firebase.firestore.FieldValue.serverTimestamp(),
-        followers_ID: add_Followers(random_author),
-        hashtag: add_random_hashtags(),
-        commented_by_user: add_random_comments(random_author),
-      });
-    }
-  
-    render() {
-      if (this.state.loading) {
-        return <ActivityIndicator size="large" />;
-      }
-  
-      return (
-        <View style={styles.container}>
-          <FlatList
-            data={this.state.posts}
-            renderItem={({ item }) => <Post post={item}/>}
-          />
-          <Button title="Add random post" onPress={() => this.addRandomPost()} />
-        </View>
-      );
+      return random_comment
     }
 
-/*     render() {
-        // query against cloud store starts here
-        const db = firebase.firestore();
+    function add_Followers(post_userID) {
+      if (post_userID == '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
+        followers_ID = ['ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2']
+      } else if (post_userID == 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
+        followers_ID = ['iDJKuWxNYBhz0eUzzfpIyQjD7GE2']
+      } else {
+        followers_ID = []
+      }
+      return followers_ID
+    }
 
- 
+    this.write_ref.add({
+      description: "posted at time" + Date().toLocaleString().substring(15, 25),
+      likes: false,
+      image_url: 'https://source.unsplash.com/collection/190727/300x200',
+      post_userID: random_author,
+      post_time_stamp: firebase.firestore.FieldValue.serverTimestamp(),
+      followers_ID: add_Followers(random_author),
+      hashtag: add_random_hashtags(),
+      commented_by_user: add_random_comments(random_author),
+    });
+  }
 
-        return (
-            <View style={{
-                flex: 1, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center',
-            }}
-            >
-                <Text>Hello!</Text>
-                <Text>This is the main feed.</Text>
-                <Icon name="wrench" size={32} />
-                <Text>Under construction.</Text>
+
+
+
+  render() {
+    if (this.state.loading) {
+      return <ActivityIndicator size="large" />;
+    }
+    return (
+      <View style={styles.container}>
+        <FlatList
+          data={this.state.posts}
+          renderItem={({ item }) => (
+            <View style={styles.imageContainer}>
+              <Image style={styles.image} resizeMode="cover" source={{ uri: item.image_url }} />
+              <View style={styles.textContainer}>
+                <Text style={styles.title}>description: {item.description}</Text>
+                <Text style={styles.title}>by: {item.post_userID}</Text>
+              </View>
+              <View style={styles.likesContainer}>
+                <Button
+                  onPress={() => {
+
+                    Alert.alert('You liked this post!');
+                  }}
+                  title="like"
+                />
+                <Text style={styles.likes}>&hearts; {item.likes}</Text>
+              </View>
+              <View style={styles.textContainer}>
+                <TextInput
+                  style={styles.commentsText}
+                  editable={true}
+                  placeholder="Add a comment"
+                  // trying to write the comment field string to post's description field for now
+                  onTextChange={text => this.setState({ description: text })}
+                />
+                <Button
+                  onPress={this.updateComments}
+                  title="Add"
+                />      
+              </View>
             </View>
-        );
-    } */
+          )}
+        />
+        <Button title="Add random post" onPress={() => this.addRandomPost()} />
+      </View>
+
+    );
+  }
+
 }
+
 
 export default FeedScreen;
 
@@ -281,8 +248,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   commentsText: {
-    height: 40, 
-    width: 300, 
-    borderColor: 'gray', 
-    borderWidth: 0},
+    height: 40,
+    width: 300,
+    borderColor: 'gray',
+    borderWidth: 0
+  },
 });
