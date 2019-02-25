@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet} from 'react-native';
+import { View, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import firebase from '../../firestore';
 import { Button, Input, Image } from 'react-native-elements';
@@ -23,31 +23,29 @@ class CreatePostScreen extends Component {
 handleUploadPhoto = async () => {
     let result = await ImagePicker.launchImageLibraryAsync();
 
-    if (!result.cancelled) {
-      this.uploadImage(result.uri, "test-image")
-        .then(() => {
-         console.log("success");
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    if (!result.cancelled){
+        this.uploadImage(result.uri);
+        
     }
 }
 
- handleTakePhoto = async () => {
-    let result = await ImagePicker.launchCameraAsync();
-    if (!result.cancelled){
+handleTakePhoto = async () => {
+     let result = await ImagePicker.launchCameraAsync();
+     if (!result.cancelled){
         this.uploadImage(result.uri);
-    }
-} 
+        
+     }
 
+}
 
 uploadImage = async (uri) => {
     const response = await fetch(uri);
     const blob = await response.blob();
 
-    var ref = firebase.storage().ref.child("/images" + imageName);
+    //THIS LINE BELOW IS NOT CORRECT, this is where we want to store image on firestore
+    var ref = firebase.firestore().collection('posts').ref().child();
     return ref.put(blob);
+
 }
 
   render() {
@@ -88,8 +86,8 @@ uploadImage = async (uri) => {
                 }}
                 containerStyle={{ marginVertical: 10 }}
                 titleStyle={{ fontFamily: 'bold', color: 'white' }}
-                onPress={this.handleTakePhoto}
-              /> 
+               // onPress={this.handleTakePhoto}
+              />
 
 
 
