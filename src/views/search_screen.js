@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { SearchBar } from 'react-native-elements';
 import {
-  StyleSheet, View, Text, FlatList, Image, TouchableHighlight,
+  ScrollView, StyleSheet, View, Text, FlatList, Image, TouchableHighlight,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -121,7 +121,7 @@ class SearchScreen extends Component {
     const { navigation } = this.props;
 
     return (
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <InstantSearch
           appId="FJ2KIO1VIS"
           apiKey="4b39aeba35b24341358ffdc2bc2400de"
@@ -130,7 +130,7 @@ class SearchScreen extends Component {
           <SearchBox />
           <SearchResults navigation={navigation} />
         </InstantSearch>
-      </View>
+      </ScrollView>
     );
   }
 }
