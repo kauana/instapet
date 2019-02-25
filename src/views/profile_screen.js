@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import {
-  ScrollView, Animated, Platform, StyleSheet, View, Text, Image,
-  ActivityIndicator,
+  ScrollView, FlatList, Animated, Platform, StyleSheet, View, Text, Image, ActivityIndicator,
 } from 'react-native';
 import {
   TabView, TabBar, PagerScroll, PagerPan, SceneMap,
@@ -11,6 +10,7 @@ import { Button } from 'react-native-elements';
 import firebase from '../../firestore';
 import colors from '../colors';
 import UserPresenter from '../presenters/user_presenter';
+import UserRow from './user_row';
 
 const db = firebase.firestore();
 
@@ -153,7 +153,6 @@ class ProfileScreen extends Component {
       color: 'white',
     },
   })
-
 
   constructor(props) {
     super(props);
@@ -395,12 +394,22 @@ class ProfileScreen extends Component {
 
   renderPosts = () => <Text>Posts</Text>
 
-  renderFollowing = () => <Text>Following</Text>
+  renderUserList = (userIDs) => {
+    const { navigation } = this.props;
 
-  renderFollowers = () => <Text>Followers</Text>
+    return (
+      <FlatList
+        data={userIDs}
+        keyExtractor={item => item}
+        renderItem={({ item }) => <UserRow navigation={navigation} userID={item} />}
+      />
+    );
+  }
 
   render() {
-    const { isLoading, tabs } = this.state;
+    const {
+      isLoading, tabs, following, followed,
+    } = this.state;
     if (isLoading) {
       return (
         <View style={styles.loadingContainer}>
@@ -420,8 +429,8 @@ class ProfileScreen extends Component {
               renderPager={this.renderPager}
               renderScene={SceneMap({
                 posts: this.renderPosts,
-                following: this.renderFollowing,
-                followers: this.renderFollowers,
+                following: () => this.renderUserList(following),
+                followers: () => this.renderUserList(followed),
               })}
               renderTabBar={this.renderTabBar}
               onIndexChange={this.handleIndexChange}

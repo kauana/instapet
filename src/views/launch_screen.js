@@ -36,13 +36,23 @@ class LaunchScreen extends Component {
     const { navigation } = this.props;
 
     firebase.auth().onAuthStateChanged((user) => {
+      const actions = [];
+      if (user) {
+        actions.push(
+          NavigationActions.navigate({
+            routeName: 'Main', key: user.uid, params: { userID: user.uid },
+          }),
+        );
+      } else {
+        actions.push(
+          NavigationActions.navigate({
+            routeName: 'Login',
+          }),
+        );
+      }
       const resetAction = StackActions.reset({
         index: 0,
-        actions: [
-          NavigationActions.navigate({
-            routeName: user ? 'Main' : 'Login', key: user.uid, params: { userID: user.uid }
-          }),
-        ],
+        actions,
       });
       navigation.dispatch(resetAction);
     });
