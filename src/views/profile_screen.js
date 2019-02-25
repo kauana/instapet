@@ -83,11 +83,31 @@ const styles = StyleSheet.create({
     height: 120,
     width: 120,
   },
+  buttonTitle: {
+    fontSize: 14,
+    fontFamily: 'regular',
+    paddingTop: 0,
+  },
+  button: {
+    borderRadius: 15,
+    marginTop: 5,
+    width: 120,
+    borderWidth: 2,
+    padding: 0,
+    paddingTop: 2,
+    paddingBottom: 2,
+  },
   editProfileButton: {
     backgroundColor: colors.red(1),
-    borderRadius: 15,
-    height: 30,
-    marginTop: 5,
+    borderColor: colors.red(1),
+  },
+  followButton: {
+    backgroundColor: colors.green3(1),
+    borderColor: colors.green3(1),
+  },
+  unfollowButton: {
+    backgroundColor: 'transparent',
+    borderColor: colors.green3(1),
   },
   userNameRow: {
     marginBottom: 10,
@@ -137,7 +157,9 @@ class ProfileScreen extends Component {
 
   constructor(props) {
     super(props);
-    this.unsubscribe = null;
+    this.unsubscribeUser = null;
+    this.unsubscribeFollowing = null;
+    this.unsubscribeFollowed = null;
     const { navigation } = this.props;
     this.userID = navigation.getParam('userID', 'NO-ID');
 
@@ -152,25 +174,58 @@ class ProfileScreen extends Component {
         index: 0,
         routes: [
           { key: 'posts', title: 'posts', count: 31 },
-          { key: 'following', title: 'following', count: 95 },
-          { key: 'followers', title: 'followers', count: '1.3 K' },
+          { key: 'following', title: 'following', count: 0 },
+          { key: 'followers', title: 'followers', count: 0 },
         ],
       },
+
+      following: [],
+      followed: [],
     };
   }
 
   componentDidMount() {
-    this.unsubscribe = db.collection('users').doc(this.userID).onSnapshot(this.onUpdate);
+    this.unsubscribeUser = db.collection('users').doc(this.userID).onSnapshot(this.onUpdateUser);
+    this.unsubscribeFollowing = db.collection('following').doc(this.userID).onSnapshot(this.onUpdateFollowing);
+    this.unsubscribeFollowed = db.collection('followed').doc(this.userID).onSnapshot(this.onUpdateFollowed);
   }
 
   componentWillUnmount() {
-    if (this.unsubscribe) {
-      this.unsubscribe();
+    if (this.unsubscribeUser) {
+      this.unsubscribeUser();
+      this.unsubscribeFollowing();
+      this.unsubscribeFollowed();
     }
   }
 
-  onUpdate = (doc) => {
+  onUpdateUser = (doc) => {
     this.setState({ ...doc.data(), isLoading: false });
+  }
+
+  // get the user IDs of the user we are looking at follows
+  onUpdateFollowing = (doc) => {
+    if (!doc.exists) {
+      db.collection('following').doc(this.userID).set({});
+      return;
+    }
+
+    const { tabs } = this.state;
+    const userIDs = Object.keys(doc.data());
+    tabs.routes[1].count = userIDs.length;
+    this.setState({ following: userIDs, tabs });
+  }
+
+  // get the user IDs of the users that follow the user we are looking at
+  onUpdateFollowed = (doc) => {
+    if (!doc.exists) {
+      db.collection('followed').doc(this.userID).set({});
+      return;
+    }
+
+    const { tabs } = this.state;
+    const userIDs = Object.keys(doc.data());
+    tabs.routes[2].count = userIDs.length;
+    this.setState({ followed: userIDs, tabs });
   }
 
   handleIndexChange = (index) => {
@@ -243,8 +298,73 @@ class ProfileScreen extends Component {
     );
   }
 
-  renderContactHeader = () => {
+  // show either follow, unfollow, edit profile button
+  renderProfileAction = () => {
+    const user = firebase.auth().currentUser;
     const { navigation } = this.props;
+    const { followed } = this.state;
+
+    console.log('user meu', user.uid);
+    console.log('user dele', this.userID);
+    if (user.uid === this.userID) {
+      return (
+        <Button
+          title=" Edit Profile"
+          onPress={() => navigation.navigate('EditProfile', { userID: this.userID })}
+          titleStyle={styles.buttonTitle}
+          buttonStyle={[styles.button, styles.editProfileButton]}
+          icon={(<Icon name="pencil" size={16} color="white" />)}
+        />
+      );
+    }
+
+    if (followed.includes(user.uid)) {
+      return (
+        <Button
+          title=" Unfollow"
+          onPress={this.removeFollower}
+          titleStyle={[styles.buttonTitle, { color: colors.green3(1) }]}
+          buttonStyle={[styles.button, styles.unfollowButton]}
+          icon={(<Icon name="check" size={16} color={colors.green3(1)} />)}
+        />
+      );
+    }
+    return (
+      <Button
+        title=" Follow"
+        onPress={this.addFollower}
+        titleStyle={[styles.buttonTitle, { color: colors.grey(1) }]}
+        buttonStyle={[styles.button, styles.followButton]}
+        icon={(<Icon name="account-plus" size={16} color={colors.grey(1)} />)}
+      />
+    );
+  }
+
+  removeFollower = () => {
+    const user = firebase.auth().currentUser;
+
+    db.collection('following').doc(user.uid).update({
+      [this.userID]: firebase.firestore.FieldValue.delete(),
+    });
+
+    db.collection('followed').doc(this.userID).update({
+      [user.uid]: firebase.firestore.FieldValue.delete(),
+    });
+  }
+
+  addFollower = () => {
+    const user = firebase.auth().currentUser;
+
+    db.collection('following').doc(user.uid).update({
+      [this.userID]: true,
+    });
+
+    db.collection('followed').doc(this.userID).update({
+      [user.uid]: true,
+    });
+  }
+
+  renderContactHeader = () => {
     const { name, username, avatar } = this.state;
     const presenter = new UserPresenter({ name, username, avatar });
 
@@ -257,14 +377,7 @@ class ProfileScreen extends Component {
               uri: presenter.avatar,
             }}
           />
-
-          <Button
-            title=" Edit Profile"
-            onPress={() => navigation.navigate('EditProfile', { userID: this.userID })}
-            titleStyle={{ fontSize: 10 }}
-            buttonStyle={styles.editProfileButton}
-            icon={(<Icon name="pencil" size={12} color="white" />)}
-          />
+          {this.renderProfileAction()}
         </View>
 
         <View style={styles.profileContainer}>
