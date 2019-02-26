@@ -56,9 +56,7 @@ class CreatePostScreen extends Component {
 
 
   addThisPost = () => {
-    console.log('want to post')
-    var author_ID_array = ['8tIDp1pDSnQnq3tsgNwgD1SR3ul1', 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2'];
-    var random_author = author_ID_array[Math.floor(Math.random() * author_ID_array.length)];
+    let appUser = firebase.auth().currentUser.uid;
 
     function add_random_hashtags() {
       var hash_tag_array = ['cat', 'dog', 'rabbit', 'guinea pig', 'bird'];
@@ -104,10 +102,10 @@ class CreatePostScreen extends Component {
 
     //post_time_stamp_string: Date().toLocaleString().substring(15, 25),
     this.write_ref.add({
-      description: "posted at time" + Date().toLocaleString().substring(15, 25) + this.state.description,
+      description: this.state.description,
       likes: false,
       image_url: this.state.imageURL,
-      post_userID: random_author,
+      post_userID: appUser,
       post_time_stamp: firebase.firestore.FieldValue.serverTimestamp(),
       followers_ID: add_Followers(random_author),
       hashtag: add_random_hashtags(),
