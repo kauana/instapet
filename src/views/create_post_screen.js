@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import uuid from 'react-native-uuid';
 import {
-  Image, View, StyleSheet, TextInput,
+  Image, View, StyleSheet, TextInput, Dimensions, Platform, 
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -11,6 +11,7 @@ import { ImagePicker, Permissions } from 'expo';
 import colors from '../colors';
 import firebase from '../../firestore';
 
+const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   icon: {
     marginLeft: 15,
@@ -107,9 +108,9 @@ class CreatePostScreen extends Component {
       image_url: this.state.imageURL,
       post_userID: appUser,
       post_time_stamp: firebase.firestore.FieldValue.serverTimestamp(),
-      followers_ID: add_Followers(random_author),
+      followers_ID: add_Followers(appUser),
       hashtag: add_random_hashtags(),
-      commented_by_user: add_random_comments(random_author),
+      commented_by_user: add_random_comments(appUser),
       likesCount: 0,
       post_time_stamp_string: Date().toLocaleString().substring(0, 4) + Date().toLocaleString().substring(15, 25),
     });

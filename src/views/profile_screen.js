@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {
-  ScrollView, FlatList, Animated, Platform, StyleSheet, View, Text, Image, ActivityIndicator,
+  ScrollView, FlatList, Animated, Platform, StyleSheet, View, Text, Image, ActivityIndicator, 
+  Dimensions, Alert,
 } from 'react-native';
 import {
   TabView, TabBar, PagerScroll, PagerPan, SceneMap,
@@ -13,6 +14,7 @@ import UserPresenter from '../presenters/user_presenter';
 import UserRow from './user_row';
 
 const db = firebase.firestore();
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -129,7 +131,56 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
+  imageContainer: {
+    width,
+    height: 400,
+    padding: 0,
+    backgroundColor: '#fefefe',
+    alignItems: 'center',
+    // justifyContent: 'center',
+  },
+  image: {
+    flex: 1,
+    width,
+    marginBottom: 5,
+  },
+  textContainer: {
+    flexDirection: 'row',
+    alignContent: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
+  title: {
+    flex: 4,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  editDeleteContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  userProfilePostscontainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+  },
+  deleteEditbutton: {
+    borderRadius: 15,
+    marginTop: 5,
+    width: 40,
+    borderWidth: 2,
+    padding: 0,
+    paddingTop: 2,
+    paddingBottom: 2,
+  },
 });
+
 
 class ProfileScreen extends Component {
   static navigationOptions = () => ({
@@ -155,8 +206,10 @@ class ProfileScreen extends Component {
     this.unsubscribeUser = null;
     this.unsubscribeFollowing = null;
     this.unsubscribeFollowed = null;
+    this.unsubscribePosts = null;
     const { navigation } = this.props;
     this.userID = navigation.getParam('userID', 'NO-ID');
+    this.feed_ref = firebase.firestore().collection('posts').orderBy("post_time_stamp", 'desc');
 
     this.state = {
       isLoading: true,
@@ -176,13 +229,16 @@ class ProfileScreen extends Component {
 
       following: [],
       followed: [],
+      posts: [],
     };
+    
   }
 
   componentDidMount() {
     this.unsubscribeUser = db.collection('users').doc(this.userID).onSnapshot(this.onUpdateUser);
     this.unsubscribeFollowing = db.collection('following').doc(this.userID).onSnapshot(this.onUpdateFollowing);
     this.unsubscribeFollowed = db.collection('followed').doc(this.userID).onSnapshot(this.onUpdateFollowed);
+    this.unsubscribePosts = this.feed_ref.onSnapshot(this.onPostUpdate)
   }
 
   componentWillUnmount() {
@@ -190,8 +246,43 @@ class ProfileScreen extends Component {
       this.unsubscribeUser();
       this.unsubscribeFollowing();
       this.unsubscribeFollowed();
+      this.unsubscribePosts();
     }
   }
+
+  onPostUpdate = (querySnapshot) => {
+    const posts = [];
+    let appUser = firebase.auth().currentUser.uid;
+
+    querySnapshot.forEach((doc) => {
+      const { image_url, likes, description, post_userID, post_time_stamp, followers_ID,
+        hashtag, commented_by_user, likesCount, post_time_stamp_string } = doc.data();
+
+      if (post_userID == appUser) {
+        console.log("true")
+        posts.push({
+          key: doc.id, // Document ID
+          doc, // DocumentSnapshot
+          image_url,
+          likes,
+          description,
+          post_userID,
+          post_time_stamp,
+          followers_ID,
+          hashtag,
+          commented_by_user,
+          likesCount,
+          post_time_stamp_string,
+        });
+        console.log(posts.length)
+      }
+    });
+
+    this.setState({
+      posts,
+    });
+  }
+
 
   onUpdateUser = (doc) => {
     this.setState({ ...doc.data(), isLoading: false });
@@ -386,7 +477,47 @@ class ProfileScreen extends Component {
     );
   }
 
-  renderPosts = () => <Text>Posts</Text>
+          
+  renderPosts = () => {
+    
+    return (
+        <View style={styles.userProfilePostscontainer}>
+          <FlatList
+            data={this.state.posts}
+            renderItem={({ item, index }) => (
+              <View style={styles.imageContainer}>
+                <Image style={styles.image} resizeMode="cover" source={{ uri: item.image_url }} />
+                <View style={styles.editDeleteContainer}>
+                  <Button 
+                    onPress={() => {
+                      Alert.alert('edit this post--to be implemented');
+                    }}
+                    title="edit"
+                  />
+                  <Button
+                    onPress={() => {
+                      Alert.alert('delete this post--to be implemented');
+                    }}
+                    title="delete"
+                  />
+                </View>
+                <View style={styles.textContainer}>
+                  <Text style={styles.title}>delete after testing posted by: {item.post_userID}</Text>
+                </View>
+                <View style={styles.textContainer}>
+                  <Text style={styles.title}>posted at: {item.post_time_stamp_string}</Text>
+                </View>
+                <View style={styles.textContainer}>
+                  <Text style={styles.title}>description: {item.description}</Text>
+                </View>
+              </View>
+            )}
+          />
+        </View>
+  
+      );
+                
+  }
 
   renderUserList = (userIDs) => {
     const { navigation } = this.props;
@@ -420,7 +551,7 @@ class ProfileScreen extends Component {
           navigationState={tabs}
           renderPager={this.renderPager}
           renderScene={SceneMap({
-            posts: this.renderPosts,
+            posts: () => this.renderPosts(),
             following: () => this.renderUserList(following),
             followers: () => this.renderUserList(followed),
           })}
