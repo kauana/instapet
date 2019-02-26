@@ -303,8 +303,6 @@ class ProfileScreen extends Component {
     const { navigation } = this.props;
     const { followed } = this.state;
 
-    console.log('user meu', user.uid);
-    console.log('user dele', this.userID);
     if (user.uid === this.userID) {
       return (
         <Button
