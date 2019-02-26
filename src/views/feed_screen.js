@@ -312,7 +312,6 @@ const styles = StyleSheet.create({
   image: {
     flex: 1,
     width,
-    // height: 300,
     marginBottom: 5,
   },
   textContainer: {

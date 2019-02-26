@@ -9,6 +9,7 @@
   "dependencies": {
     "@expo/vector-icons": "^9.0.0",
     "babel-eslint": "^10.0.1",
+    "buffer": "^5.2.1",
     "expo": "^32.0.0",
     "firebase": "^5.8.0",
     "firebase-admin": "^7.0.0",
@@ -26,6 +27,7 @@
     "react-native-paper": "^2.11.0",
     "react-native-settings-list": "^1.8.0",
     "react-native-tab-view": "^1.3.2",
+    "react-native-uuid": "^1.4.9",
     "react-native-vector-icons": "^6.2.0",
     "react-navigation": "^3.2.0",
     "react-navigation-material-bottom-tabs": "^1.0.0"

@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
-import { View, StyleSheet } from 'react-native';
+import uuid from 'react-native-uuid';
+import {
+  Image, View, StyleSheet, TextInput,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Button } from 'react-native-elements';
-import SettingsList from 'react-native-settings-list';
+import {
+  Text, Button,
+} from 'react-native-elements';
 import { ImagePicker, Permissions } from 'expo';
 import colors from '../colors';
 import firebase from '../../firestore';
-
 
 const styles = StyleSheet.create({
   icon: {
@@ -19,11 +22,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
 });
-
 
 class CreatePostScreen extends Component {
   static navigationOptions = () => ({
@@ -45,168 +48,125 @@ class CreatePostScreen extends Component {
 
     this.state = {
       description: '',
-      hashtag: '',
-      imagePath: '',
-      imageURL: '',
+      imageURL: 'https://bigriverequipment.com/wp-content/uploads/2017/10/no-photo-available.png',
       hasCameraPermission: false,
+      uploading: false,
     };
   }
-
-
 
   async componentDidMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
     this.setState({ hasCameraPermission: status === 'granted' });
   }
 
-
   handleUploadPhoto = async () => {
+    this.setState({ uploading: true });
     const result = await ImagePicker.launchImageLibraryAsync();
-    try{
-        if (!result.cancelled) {
-            this.uploadImage(result.uri, 'test-image')
-                    .then(() => {
-                      console.log('success');
-                    })
-                    .catch((error) => {
-                      console.log(error);
-                    });
-                    this.getURL(result.uri);
-          }
-
-       } catch(e){ console.log(e);}
-
+    try {
+      if (!result.cancelled) {
+        this.uploadImage(result.uri);
+      }
+    } catch (e) { console.log(e); }
   }
 
-
   handleTakePhoto = async () => {
+    this.setState({ uploading: true });
     const result = await ImagePicker.launchCameraAsync();
     if (!result.cancelled) {
-      this.uploadImage(result.uri)
-        .then(() => {
-          console.log('success');
-        })
-        .catch((error) => {
-          console.log('error');
-        });
+      this.uploadImage(result.uri);
     }
   }
 
+  uploadImage = async (uri) => {
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = () => {
+        resolve(xhr.response);
+      };
 
-  uploadImage = async (uri, imagename) => {
+      xhr.onerror = (err) => {
+        console.log(err);
+        reject(new TypeError('Network request failed'));
+      };
 
-        const blob = await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.onload = function() {
-              resolve(xhr.response);
-            };
-            xhr.onerror = function(e) {
-              console.log(e);
-              reject(new TypeError('Network request failed'));
-            };
-            xhr.responseType = 'blob';
-            xhr.open('GET', uri, true);
-            xhr.send(null); })
-
-
-  //      const response = await fetch(uri);
-  //      const blob = this._urlToBlob(response);
-
-        imagename = blob._data.blobId;
-
-        const ref = firebase.storage().ref().child('images/' + imagename);
-
-        return ref.put(blob);
-//        return imagename;
-
-  }
-
-getURL = (uri, imagename) => {
-
-    const ref = firebase.storage().ref().child('images/' + imagename);
-    let url = ref.getDownloadUrl();
-    console.log('this is your url ' + url);
-    this.setState({imageURL: uri });
-    return ref.getDownloadURL;
-}
-
-  postPhoto = () => {
-    const {
-      description, hashtag,
-    } = this.state;
-
-    this.write_ref.add({
-      description,
-      likes: false,
-      image_url: this.state.imageURL,
-//      image_url: this.state.imagePath.data,
-      post_userID: this.userID,
-      post_time_stamp: firebase.firestore.FieldValue.serverTimestamp(),
-      hashtag,
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
     });
-  }
 
+    const ref = firebase
+      .storage()
+      .ref()
+      .child(uuid.v4());
+    const snapshot = await ref.put(blob);
+
+    // We're done with the blob, close and release it
+    blob.close();
+
+    const imageURL = await snapshot.ref.getDownloadURL();
+
+    this.setState({ imageURL, uploading: false });
+  }
 
   render() {
     const {
-      image_url, description, hashtag, hasCameraPermission,
+      imageURL, description, hasCameraPermission, uploading,
     } = this.state;
 
     return (
       <View style={{ backgroundColor: 'white', flex: 1 }}>
         <View style={{ flex: 1, marginTop: 0 }}>
-          <SettingsList borderColor={colors.grey(0.2)} defaultItemSize={50}>
-            <SettingsList.Header headerText="CREATE POST" headerStyle={{ color: colors.grey(1), marginTop: 50 }} />
+          <Text
+            style={{
+              marginTop: 10,
+              marginLeft: 10,
+              paddingBottom: 5,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.grey(0.1),
+              color: colors.grey(1),
+            }}
+          >
+            CREATE POST
+          </Text>
 
-            <SettingsList.Item
-              id="description"
-              title="caption"
-              isEditable
-              hasNavArrow={false}
-              value={description}
-              onTextChange={text => this.setState({ description: text })}
-              placeholder="About..."
-              icon={(
-                <Icon
-                  name="clipboard-text"
-                  size={24}
-                  color={colors.red(1)}
-                  style={styles.icon}
-                />
-              )}
+          <View style={{ padding: 10, flexDirection: 'row' }}>
+            <Image
+              source={{ uri: imageURL }}
+              style={{ resizeMode: 'contain', aspectRatio: 1, width: 72 }}
             />
-            <SettingsList.Item
-              id="hashtag"
-              title="hashtag"
-              isEditable
-              hasNavArrow={false}
-              value={hashtag}
-              onTextChange={text => this.setState({ hashtag: text })}
-              placeholder="#"
-              icon={(
-                <Icon
-                  name="pound"
-                  size={24}
-                  color={colors.red(1)}
-                  style={styles.icon}
-                />
-              )}
+            <TextInput
+              multiline
+              style={{ flex: 1, paddingHorizontal: 16 }}
+              placeholder="Enter description here..."
+              onChangeText={(text) => {
+                this.setState({ description: text });
+              }}
             />
-          </SettingsList>
+          </View>
+
           <View style={styles.buttonContainer}>
             <Button
-              title="Upload Photo"
+              title=" Upload Photo"
               activeOpacity={1}
               underlayColor="transparent"
               loadingProps={{ size: 'small', color: 'white' }}
+              loading={uploading}
               buttonStyle={{
                 height: 50,
-                width: 250,
+                width: 180,
                 backgroundColor: colors.red(1),
                 borderWidth: 0,
+                marginRight: 10,
               }}
+              icon={(
+                <Icon
+                  name="cloud-upload"
+                  size={24}
+                  color="white"
+                />
+              )}
               containerStyle={{ marginVertical: 10 }}
-              titleStyle={{ fontFamily: 'bold', color: 'white' }}
+              titleStyle={{ fontFamily: 'regular', color: 'white' }}
               onPress={this.handleUploadPhoto}
             />
 
@@ -214,24 +174,34 @@ getURL = (uri, imagename) => {
             hasCameraPermission
               ? (
                 <Button
-                  title="Take Photo"
+                  title=" Take Photo"
                   activeOpacity={1}
                   underlayColor="transparent"
                   loadingProps={{ size: 'small', color: 'white' }}
+                  loading={uploading}
                   buttonStyle={{
                     height: 50,
-                    width: 250,
+                    width: 180,
                     backgroundColor: colors.red(1),
                     borderWidth: 0,
                   }}
-                  containerStyle={{ marginVertical: 10 }}
-                  titleStyle={{ fontFamily: 'bold', color: 'white' }}
+                  icon={(
+                    <Icon
+                      name="camera-iris"
+                      size={24}
+                      color="white"
+                    />
+                  )}
+                  titleStyle={{ fontFamily: 'regular', color: 'white' }}
                   onPress={this.handleTakePhoto}
                 />
               )
               : null
           }
 
+          </View>
+
+          <View style={styles.buttonContainer}>
             <Button
               title="Post"
               activeOpacity={1}
@@ -247,7 +217,6 @@ getURL = (uri, imagename) => {
               titleStyle={{ fontFamily: 'bold', color: 'white' }}
               onPress={this.postPhoto}
             />
-
           </View>
         </View>
       </View>
@@ -255,8 +224,7 @@ getURL = (uri, imagename) => {
   }
 }
 
-export default CreatePostScreen;// JavaScript source code
-
+export default CreatePostScreen;
 
 // urlToBlob function from: https://github.com/expo/firebase-storage-upload-example/issues/14
 // https://github.com/expo/firebase-storage-upload-example/blob/master/App.js
