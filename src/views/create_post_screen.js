@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import uuid from 'react-native-uuid';
 import {
-  Image, View, StyleSheet, TextInput, Dimensions, Platform, 
+  Image, View, StyleSheet, TextInput, Dimensions, Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -45,7 +45,7 @@ class CreatePostScreen extends Component {
     this.unsubscribe = null;
     const { navigation } = this.props;
     this.userID = navigation.getParam('userID', 'NO-ID');
-    this.write_ref = firebase.firestore().collection('posts');
+    this.writeRef = firebase.firestore().collection('posts');
 
     this.state = {
       description: '',
@@ -55,70 +55,55 @@ class CreatePostScreen extends Component {
     };
   }
 
-
-  addThisPost = () => {
-    let appUser = firebase.auth().currentUser.uid;
-
-    function add_random_hashtags() {
-      var hash_tag_array = ['cat', 'dog', 'rabbit', 'guinea pig', 'bird'];
-      var random_int = Math.floor(Math.random() * hash_tag_array.length);
-      var random_hashtag = [hash_tag_array[random_int]];
-
-      return random_hashtag
-    }
-    function add_random_comments(post_userID) {
-      random_comment = []
-      if (post_userID == '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
-        random_comment.push({
-          "ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3": 'comment' + Math.floor(Math.random() * 10)
-        });
-        random_comment.push({
-          'iDJKuWxNYBhz0eUzzfpIyQjD7GE2': 'comment' + Math.floor(Math.random() * 10)
-        });
-
-      } else if (post_userID == 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
-        random_comment.push({
-          "8tIDp1pDSnQnq3tsgNwgD1SR3ul1": 'comment' + Math.floor(Math.random() * 10)
-        });
-      } else {
-        random_comment = [];
-      }
-      return random_comment
-    }
-
-    function add_Followers(post_userID) {
-      if (post_userID == '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
-        followers_ID = ['ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2']
-      } else if (post_userID == 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
-        followers_ID = ['iDJKuWxNYBhz0eUzzfpIyQjD7GE2']
-      } else {
-        followers_ID = ['iDJKuWxNYBhz0eUzzfpIyQjD7GE2']
-      }
-      followers_ID = ['8tIDp1pDSnQnq3tsgNwgD1SR3ul1', 'M1FmnyjTLFgIsv4t3bdMz0UXO7s2', 
-      'RY8ZaZSMcUad6S05saGyKiKc7pT2', 'VAjb1wSdJ6VahRrXSKL723nFaRc2',
-      'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2','ncZ9X1qYG7PxwBW4eI9Zps8Qt3O2',
-      'oXvTKGNhvITos3fXO15QfsCvMgE3', 'rVzvzPzevqTv5YyrLdeAAqHkcaf1']
-      return followers_ID
-    }
-
-    //post_time_stamp_string: Date().toLocaleString().substring(15, 25),
-    this.write_ref.add({
-      description: this.state.description,
-      likes: false,
-      image_url: this.state.imageURL,
-      post_userID: appUser,
-      post_time_stamp: firebase.firestore.FieldValue.serverTimestamp(),
-      followers_ID: add_Followers(appUser),
-      hashtag: add_random_hashtags(),
-      commented_by_user: add_random_comments(appUser),
-      likesCount: 0,
-      post_time_stamp_string: Date().toLocaleString().substring(0, 4) + Date().toLocaleString().substring(15, 25),
-    });
-  }
-
   async componentDidMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
     this.setState({ hasCameraPermission: status === 'granted' });
+  }
+
+  addThisPost = () => {
+    const appUser = firebase.auth().currentUser.uid;
+
+    function addRandomComments(userID) {
+      const randomComment = [];
+      if (userID === '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
+        randomComment.push({
+          ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3: `comment${Math.floor(Math.random() * 10)}`,
+        });
+        randomComment.push({
+          iDJKuWxNYBhz0eUzzfpIyQjD7GE2: `comment${Math.floor(Math.random() * 10)}`,
+        });
+      } else if (userID === 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
+        randomComment.push({
+          '8tIDp1pDSnQnq3tsgNwgD1SR3ul1': `comment${Math.floor(Math.random() * 10)}`,
+        });
+      }
+      return randomComment;
+    }
+
+    function addFollowers(userID) {
+      if (userID === '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
+        return ['ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2'];
+      } if (userID === 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
+        return ['iDJKuWxNYBhz0eUzzfpIyQjD7GE2'];
+      }
+      return ['8tIDp1pDSnQnq3tsgNwgD1SR3ul1', 'M1FmnyjTLFgIsv4t3bdMz0UXO7s2',
+        'RY8ZaZSMcUad6S05saGyKiKc7pT2', 'VAjb1wSdJ6VahRrXSKL723nFaRc2',
+        'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2', 'ncZ9X1qYG7PxwBW4eI9Zps8Qt3O2',
+        'oXvTKGNhvITos3fXO15QfsCvMgE3', 'rVzvzPzevqTv5YyrLdeAAqHkcaf1'];
+    }
+
+    // timestampString: Date().toLocaleString().substring(15, 25),
+    this.writeRef.add({
+      description: this.state.description,
+      likes: false,
+      imageURL: this.state.imageURL,
+      userID: appUser,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      followerIDs: addFollowers(appUser),
+      commentedByUser: addRandomComments(appUser),
+      likesCount: 0,
+      timestampString: Date().toLocaleString().substring(0, 4) + Date().toLocaleString().substring(15, 25),
+    });
   }
 
   handleUploadPhoto = async () => {
@@ -278,7 +263,7 @@ class CreatePostScreen extends Component {
               containerStyle={{ marginVertical: 10 }}
               titleStyle={{ fontFamily: 'bold', color: 'white' }}
               onPress={() => this.addThisPost()}
-              //onPress={this.postPhoto}
+              // onPress={this.postPhoto}
             />
           </View>
         </View>
