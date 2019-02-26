@@ -210,6 +210,10 @@ class FeedScreen extends Component {
       } else {
         followers_ID = ['iDJKuWxNYBhz0eUzzfpIyQjD7GE2']
       }
+      followers_ID = ['8tIDp1pDSnQnq3tsgNwgD1SR3ul1', 'M1FmnyjTLFgIsv4t3bdMz0UXO7s2', 
+      'RY8ZaZSMcUad6S05saGyKiKc7pT2', 'VAjb1wSdJ6VahRrXSKL723nFaRc2',
+      'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2','ncZ9X1qYG7PxwBW4eI9Zps8Qt3O2',
+      'oXvTKGNhvITos3fXO15QfsCvMgE3', 'rVzvzPzevqTv5YyrLdeAAqHkcaf1']
       return followers_ID
     }
 
