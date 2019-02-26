@@ -66,11 +66,41 @@ class FeedScreen extends Component {
   onCollectionUpdate = (querySnapshot) => {
     const posts = [];
     var authorUsername = "want to go to user collection and get username";
-    //console.log("app user")
     let user = firebase.auth().currentUser.uid;
 
    
-    console.log(authorUsername)
+   // console.log(authorUsername)
+    function getUserName(post_author) {
+
+      var usersRef = firebase.firestore().collection('users');
+      usersRef.get()
+            .then(snapshot => {     
+                snapshot.forEach(doc => {
+                  if (doc.id == post_author) {
+                    authorUsername =  doc.data().username;
+                    console.log(authorUsername)
+                    console.log(doc.id)
+                    console.log(post_author)
+                  }
+                });
+                return authorUsername   
+            })
+            .catch(err => {
+                console.log('Error getting users', err);
+            });
+  }
+
+  
+  /*
+    function getUserName(post_author) {
+      return firebase.firestore().collection("users").doc(post_author).get().then(function(doc) {
+        return doc.data().username;     
+       })
+    }
+
+    */
+
+
 
     querySnapshot.forEach((doc) => {
       const { image_url, likes, description, post_userID, post_time_stamp, followers_ID, 
@@ -94,7 +124,7 @@ class FeedScreen extends Component {
           followers_ID,
           hashtag,
           commented_by_user,
-          authorUsername,
+          authorUsername : getUserName(post_userID),
           likesCount,
           post_time_stamp_string,
         });
