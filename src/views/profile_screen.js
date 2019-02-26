@@ -15,9 +15,6 @@ import UserRow from './user_row';
 const db = firebase.firestore();
 
 const styles = StyleSheet.create({
-  cardContainer: {
-    flex: 1,
-  },
   container: {
     flex: 1,
   },
@@ -57,7 +54,6 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flex: 1,
-    marginBottom: 12,
   },
   tabLabelText: {
     color: 'gray',
@@ -417,25 +413,21 @@ class ProfileScreen extends Component {
     }
 
     return (
-      <ScrollView style={styles.scroll}>
-        <View style={styles.container}>
-          <View style={styles.cardContainer}>
-            {this.renderContactHeader()}
-            <TabView
-              style={styles.tabContainer}
-              navigationState={tabs}
-              renderPager={this.renderPager}
-              renderScene={SceneMap({
-                posts: this.renderPosts,
-                following: () => this.renderUserList(following),
-                followers: () => this.renderUserList(followed),
-              })}
-              renderTabBar={this.renderTabBar}
-              onIndexChange={this.handleIndexChange}
-            />
-          </View>
-        </View>
-      </ScrollView>
+      <View style={styles.container}>
+        {this.renderContactHeader()}
+        <TabView
+          style={styles.tabContainer}
+          navigationState={tabs}
+          renderPager={this.renderPager}
+          renderScene={SceneMap({
+            posts: this.renderPosts,
+            following: () => this.renderUserList(following),
+            followers: () => this.renderUserList(followed),
+          })}
+          renderTabBar={this.renderTabBar}
+          onIndexChange={this.handleIndexChange}
+        />
+      </View>
     );
   }
 }
