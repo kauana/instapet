@@ -43,16 +43,16 @@ class FeedScreen extends Component {
 
   updateComments = (key, index) => {
 
-    ///// don't know how to update the single post. need some index in posts?
-    ///// const {description} = this.state.posts[index].description;
-    //console.log('try to update')
-    //console.log(key)
-    //console.log(index)
-    // fire store will be updated if we redefine description as below
-    var description = "press add comment button will change the description; need to post actual comments"
+    console.log(key)
+    console.log(index)
+    console.log(this.state.commentText)
+    console.log('comment captured?')
+
 
     firebase.firestore().collection('posts').doc(key).update({
-      description,
+      description: this.state.commentText,
+      // how to get the input key in this function as key, instead of string key?
+      commented_by_user: {key : [ this.state.commentText]},
     })
   }
 
@@ -65,6 +65,7 @@ class FeedScreen extends Component {
   }
   onCollectionUpdate = (querySnapshot) => {
     const posts = [];
+    const commentText = '';
     var authorUsername = "want to go to user collection and get username";
     let user = firebase.auth().currentUser.uid;
 
@@ -81,24 +82,16 @@ class FeedScreen extends Component {
                     console.log(authorUsername)
                     console.log(doc.id)
                     console.log(post_author)
+                    return authorUsername   
                   }
                 });
-                return authorUsername   
+                
             })
             .catch(err => {
                 console.log('Error getting users', err);
             });
   }
 
-  
-  /*
-    function getUserName(post_author) {
-      return firebase.firestore().collection("users").doc(post_author).get().then(function(doc) {
-        return doc.data().username;     
-       })
-    }
-
-    */
 
 
 
@@ -134,8 +127,15 @@ class FeedScreen extends Component {
     this.setState({
     posts,
     loading: false,
+    commentText,
   });
   }
+
+  onCommentChanged = (text) => {
+    this.setState({
+      commentText: text,
+    });
+  } 
 
 
 addRandomPost = () => {
@@ -242,7 +242,7 @@ render() {
                 editable={true}
                 placeholder="Add a comment"
                 // trying to write the comment field string to post's description field for now
-                onTextChange={text => this.setState({ description: text })}
+                onChangeText={(text) => this.onCommentChanged(text)}
               />
               <Button
                 onPress={() => this.updateComments(item.key, index)}
