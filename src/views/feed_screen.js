@@ -259,7 +259,7 @@ class FeedScreen extends Component {
                 <Text style={styles.title}>by: {item.post_userID}</Text>
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.title}>by: {item.authorUsername}</Text>
+                <Text style={styles.title}>by: {item.authorUsername} user name not shown here</Text>
               </View>
               <View style={styles.textContainer}>
                 <Text style={styles.title}>posted at: {item.post_time_stamp_string}</Text>
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width,
-    height: 355,
+    height: 400,
     padding: 0,
     backgroundColor: '#fefefe',
     alignItems: 'center',
