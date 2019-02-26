@@ -49,11 +49,11 @@ class FeedScreen extends Component {
     console.log('comment captured?')
 
 
+    let appUser = firebase.auth().currentUser.uid;
     firebase.firestore().collection('posts').doc(key).update({
-      description: this.state.commentText,
-      // how to get the input key in this function as key, instead of string key?
-      commented_by_user: { key: [this.state.commentText] },
-    })
+    commented_by_user: firebase.firestore.FieldValue.arrayUnion({ who: appUser, when: new Date(), contents: this.state.commentText}),
+  })
+
   }
 
   updateLikes = (key, index) => {
@@ -61,6 +61,14 @@ class FeedScreen extends Component {
     // Create a reference to the this post that was liked.
     var postRef = firebase.firestore().collection("posts").doc(key);
 
+
+    // record who liked this post
+    let appUser = firebase.auth().currentUser.uid;
+    firebase.firestore().collection('posts').doc(key).update({
+      liked_by_user: firebase.firestore.FieldValue.arrayUnion(appUser),
+    })
+
+    
     return firebase.firestore().runTransaction(function (transaction) {
       // This code may get re-run multiple times if there are conflicts.
       return transaction.get(postRef).then(function (doc) {
@@ -76,6 +84,8 @@ class FeedScreen extends Component {
       console.log("Transaction failed: ", error);
     });
 
+
+
   }
 
   componentDidMount() {
@@ -88,8 +98,9 @@ class FeedScreen extends Component {
   onCollectionUpdate = (querySnapshot) => {
     const posts = [];
     const commentText = '';
+
     var authorUsername = "want to go to user collection and get username";
-    let user = firebase.auth().currentUser.uid;
+    let appUser = firebase.auth().currentUser.uid;
 
 
     // console.log(authorUsername)
@@ -127,7 +138,7 @@ class FeedScreen extends Component {
       if (!followers_ID) {
         return;
       }
-      if (followers_ID.includes(user)) {
+      if (followers_ID.includes(appUser)) {
         posts.push({
           key: doc.id, // Document ID
           doc, // DocumentSnapshot
@@ -235,11 +246,11 @@ class FeedScreen extends Component {
                 <Text style={styles.likes}>{item.likesCount} &hearts; </Text>
                 <Button
                   onPress={() => this.updateLikes(item.key, index)}
-                  title="like"
+                  title= "like"
                 />
                 <Button
                   onPress={() => {
-                    Alert.alert('details of this post including all comments');
+                    Alert.alert('details of this post including all the comments');
                   }}
                   title="more"
                 />
