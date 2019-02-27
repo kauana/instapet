@@ -13,9 +13,11 @@ import {
   Text,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Post from './post';
 import firebase from '../../firestore';
 
 const { width } = Dimensions.get('window');
+const db = firebase.firestore();
 
 const styles = StyleSheet.create({
   container: {
@@ -88,8 +90,10 @@ class FeedScreen extends Component {
 
   constructor() {
     super();
-    this.feed_ref = firebase.firestore().collection('posts').orderBy('timestamp', 'desc');
-    this.write_ref = firebase.firestore().collection('posts');
+    const appUser = firebase.auth().currentUser.uid;
+    this.feedRef = db.collection('posts')
+      .orderBy('timestamp', 'desc')
+      .where('followerIDs', 'array-contains', appUser);
     this.unsubscribe = null;
     this.state = {
       posts: [],
@@ -98,7 +102,7 @@ class FeedScreen extends Component {
   }
 
   componentDidMount() {
-    this.unsubscribe = this.feed_ref.onSnapshot(this.onCollectionUpdate);
+    this.unsubscribe = this.feedRef.onSnapshot(this.onPostUpdate);
   }
 
   componentWillUnmount() {
@@ -122,91 +126,38 @@ class FeedScreen extends Component {
     });
   }
 
-  updateLikes = (key) => {
-    // add 1 to likesCount each time it is liked; now you cannot unlike a post;
-    // you can like it a few times
-    // Create a reference to the this post that was liked.
-    const postRef = firebase.firestore().collection('posts').doc(key);
-
-    // record who liked this post
-    const appUser = firebase.auth().currentUser.uid;
-    firebase.firestore().collection('posts').doc(key).update({
-      likedByUsers: firebase.firestore.FieldValue.arrayUnion(appUser),
-    });
-
-    return firebase.firestore().runTransaction((transaction) => {
-      transaction.get(postRef).then((doc) => {
-        if (!doc.exists) {
-          throw 'Document does not exist!';
-        }
-        const newLikesCount = doc.data().likesCount + 1;
-        transaction.update(postRef, { likesCount: newLikesCount });
-      });
-    }).then(() => {
-      console.log('Transaction successfully committed!');
-    }).catch((error) => {
-      console.log('Transaction failed: ', error);
-    });
-  }
-
-  onCollectionUpdate = (querySnapshot) => {
+  onPostUpdate = async (querySnapshot) => {
     const posts = [];
-    const commentText = '';
-
-    let authorUsername = 'want to go to user collection and get username';
-    const appUser = firebase.auth().currentUser.uid;
-
-    function getUserName(postAuthor) {
-      const usersRef = firebase.firestore().collection('users');
-      usersRef.get()
-        .then((snapshot) => {
-          snapshot.forEach((doc) => {
-            if (doc.id === postAuthor) {
-              authorUsername = doc.data().username;
-              console.log(authorUsername);
-              console.log(doc.id);
-              console.log(postAuthor);
-              return authorUsername;
-            }
-            return '';
-          });
-        })
-        .catch((err) => {
-          console.log('Error getting users', err);
-        });
-    }
+    const promises = [];
 
     querySnapshot.forEach((doc) => {
       const {
-        imageURL, likes, description, userID, timestamp, followerIDs,
-        commentedByUser, likesCount, timestampString,
+        imageURL, likedByUsers, description, userID, timestamp, followed,
+        commentedByUsers, likesCount,
       } = doc.data();
-      if (!followerIDs) {
-        return;
-      }
-      if (followerIDs.includes(appUser)) {
-        posts.push({
-          key: doc.id, // Document ID
-          doc, // DocumentSnapshot
-          imageURL,
-          likes,
-          description,
-          userID,
-          timestamp,
-          followerIDs,
-          commentedByUser,
-          authorUsername: getUserName(userID),
-          likesCount,
-          timestampString,
-        });
-      }
+
+      promises.push(db.collection('users').doc(userID).get()
+        .then((userDoc) => {
+          posts.push({
+            key: doc.id,
+            imageURL,
+            description,
+            timestamp,
+            followed,
+            commentedByUsers,
+            likedByUsers,
+            likesCount,
+            userID,
+            user: userDoc.data(),
+          });
+        })
+        .catch(error => console.log(error)));
     });
 
-    this.setState({
-      posts,
-      loading: false,
-      commentText,
-    });
+
+    await Promise.all(promises);
+
+    this.setState({ posts, loading: false });
   }
 
   onCommentChanged = (text) => {
@@ -224,67 +175,8 @@ class FeedScreen extends Component {
       <View style={styles.container}>
         <FlatList
           data={posts}
-          renderItem={({ item, index }) => (
-            <View style={styles.imageContainer}>
-              <Image style={styles.image} resizeMode="cover" source={{ uri: item.imageURL }} />
-              <View style={styles.likesContainer}>
-                <Text style={styles.likes}>
-                  {item.likesCount}
-                  {' '}
-                  &hearts;
-                  {' '}
-                </Text>
-                <Button
-                  onPress={() => this.updateLikes(item.key, index)}
-                  title="like"
-                />
-                <Button
-                  onPress={() => {
-                    Alert.alert('details of this post including all the comments');
-                  }}
-                  title="more"
-                />
-              </View>
-              <View style={styles.textContainer}>
-                <Text style={styles.title}>
-                  by:
-                  {item.userID}
-                </Text>
-              </View>
-              <View style={styles.textContainer}>
-                <Text style={styles.title}>
-                  by:
-                  {item.authorUsername}
-                  {' '}
-                  user name not shown here
-                </Text>
-              </View>
-              <View style={styles.textContainer}>
-                <Text style={styles.title}>
-                  posted at:
-                  {item.timestampString}
-                </Text>
-              </View>
-              <View style={styles.textContainer}>
-                <Text style={styles.title}>
-                  description:
-                  {item.description}
-                </Text>
-              </View>
-              <View style={styles.textContainer}>
-                <TextInput
-                  style={styles.commentsText}
-                  editable
-                  placeholder="Add a comment"
-                  // trying to write the comment field string to post's description field for now
-                  onChangeText={text => this.onCommentChanged(text)}
-                />
-                <Button
-                  onPress={() => this.updateComments(item.key, index)}
-                  title="Add"
-                />
-              </View>
-            </View>
+          renderItem={({ item }) => (
+            <Post post={item} user={item.user} />
           )}
         />
       </View>

@@ -76,19 +76,19 @@ class CreatePostScreen extends Component {
     }
 
     const userIDs = Object.keys(doc.data());
-    this.setState({ followed: userIDs });
+    this.setState({ followerIDs: userIDs });
   }
 
   createPost = () => {
     const user = firebase.auth().currentUser;
-    const { imageURL, description, followed } = this.state;
+    const { imageURL, description, followerIDs } = this.state;
 
     db.collection('posts').add({
       imageURL,
       description,
-      followed,
+      followerIDs,
       likeCount: 0,
-      commentedByUsers: '',
+      commentedByUsers: [],
       likedByUsers: [],
       userID: user.uid,
       timestamp: new Date().toLocaleString(),
