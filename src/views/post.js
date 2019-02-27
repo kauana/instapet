@@ -325,6 +325,8 @@ const Post = ({ post, user }) => {
             {`${likesCount} likes`}
           </Text>
         </View>
+        { appUser === post.userID
+        && (
         <View style={styles.leftActions}>
           <Button
             buttonStyle={{ backgroundColor: 'transparent' }}
@@ -350,6 +352,8 @@ const Post = ({ post, user }) => {
             onPress={() => deletePost(post.key)}
           />
         </View>
+        )
+        }
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.description}>
