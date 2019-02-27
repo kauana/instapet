@@ -89,7 +89,7 @@ class CreatePostScreen extends Component {
       followed,
       likeCount: 0,
       commentedByUsers: '',
-      likedByUsers: '',
+      likedByUsers: [],
       userID: user.uid,
       timestamp: new Date().toLocaleString(),
     }).then(() => {

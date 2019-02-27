@@ -30,7 +30,6 @@ const styles = StyleSheet.create({
     padding: 0,
     backgroundColor: '#fefefe',
     alignItems: 'center',
-    // justifyContent: 'center',
   },
   image: {
     flex: 1,
@@ -87,7 +86,6 @@ class FeedScreen extends Component {
     ),
   })
 
-
   constructor() {
     super();
     this.feed_ref = firebase.firestore().collection('posts').orderBy('timestamp', 'desc');
@@ -133,7 +131,7 @@ class FeedScreen extends Component {
     // record who liked this post
     const appUser = firebase.auth().currentUser.uid;
     firebase.firestore().collection('posts').doc(key).update({
-      liked_by_user: firebase.firestore.FieldValue.arrayUnion(appUser),
+      likedByUsers: firebase.firestore.FieldValue.arrayUnion(appUser),
     });
 
     return firebase.firestore().runTransaction((transaction) => {
@@ -178,16 +176,11 @@ class FeedScreen extends Component {
         });
     }
 
-
     querySnapshot.forEach((doc) => {
       const {
         imageURL, likes, description, userID, timestamp, followerIDs,
         commentedByUser, likesCount, timestampString,
       } = doc.data();
-      // ///const db = firebase.firestore().collection('users').doc(userID);
-
-      // console.log(user);
-      // console.log(followerIDs)
       if (!followerIDs) {
         return;
       }
@@ -222,47 +215,6 @@ class FeedScreen extends Component {
     });
   }
 
-  addRandomPost = () => {
-    const appUser = firebase.auth().currentUser.uid;
-
-    function addRandomComments(userID) {
-      const randomComment = [];
-      if (userID === '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
-        randomComment.push({
-          ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3: `comment${Math.floor(Math.random() * 10)}`,
-        });
-        randomComment.push({
-          iDJKuWxNYBhz0eUzzfpIyQjD7GE2: `comment${Math.floor(Math.random() * 10)}`,
-        });
-      } else if (userID === 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
-        randomComment.push({
-          '8tIDp1pDSnQnq3tsgNwgD1SR3ul1': `comment${Math.floor(Math.random() * 10)}`,
-        });
-      }
-      return randomComment;
-    }
-
-    function addFollowers() {
-      return ['8tIDp1pDSnQnq3tsgNwgD1SR3ul1', 'M1FmnyjTLFgIsv4t3bdMz0UXO7s2',
-        'RY8ZaZSMcUad6S05saGyKiKc7pT2', 'VAjb1wSdJ6VahRrXSKL723nFaRc2',
-        'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2', 'ncZ9X1qYG7PxwBW4eI9Zps8Qt3O2',
-        'oXvTKGNhvITos3fXO15QfsCvMgE3', 'rVzvzPzevqTv5YyrLdeAAqHkcaf1'];
-    }
-
-    // timestampString: Date().toLocaleString().substring(15, 25),
-    this.write_ref.add({
-      description: `posted at time${Date().toLocaleString().substring(15, 25)}`,
-      likes: false,
-      imageURL: 'https://source.unsplash.com/collection/190727/300x200',
-      userID: appUser,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      followerIDs: addFollowers(),
-      commentedByUser: addRandomComments(appUser),
-      likesCount: 0,
-      timestampString: Date().toLocaleString().substring(0, 4) + Date().toLocaleString().substring(15, 25),
-    });
-  }
-
   render() {
     const { posts, loading } = this.state;
     if (loading) {
@@ -279,7 +231,7 @@ class FeedScreen extends Component {
                 <Text style={styles.likes}>
                   {item.likesCount}
                   {' '}
-&hearts;
+                  &hearts;
                   {' '}
                 </Text>
                 <Button
@@ -295,27 +247,27 @@ class FeedScreen extends Component {
               </View>
               <View style={styles.textContainer}>
                 <Text style={styles.title}>
-by:
+                  by:
                   {item.userID}
                 </Text>
               </View>
               <View style={styles.textContainer}>
                 <Text style={styles.title}>
-by:
+                  by:
                   {item.authorUsername}
                   {' '}
-user name not shown here
+                  user name not shown here
                 </Text>
               </View>
               <View style={styles.textContainer}>
                 <Text style={styles.title}>
-posted at:
+                  posted at:
                   {item.timestampString}
                 </Text>
               </View>
               <View style={styles.textContainer}>
                 <Text style={styles.title}>
-description:
+                  description:
                   {item.description}
                 </Text>
               </View>
@@ -335,7 +287,6 @@ description:
             </View>
           )}
         />
-        <Button title="Add random post" onPress={() => this.addRandomPost()} />
       </View>
     );
   }
