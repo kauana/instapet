@@ -109,6 +109,26 @@ const Post = ({ post, user }) => {
     });
   };
 
+  deletePost = (key) => {
+    let postRef = db.collection('posts');
+    let docRef = postRef.doc(post.key);
+    docRef.delete().then(function(){
+        alert("deleted")
+        }).catch(function(error){
+            alert(error);
+        });
+  }
+
+/*
+  editPost = () => {
+    let postRef = db.collection('posts');
+    let docRef = postRef.doc(post.key);
+    docRef.update({
+
+    })
+  }
+*/
+
   const likesCount = post.likedByUsers.length;
   const liked = post.likedByUsers.includes(appUser);
 
@@ -187,7 +207,8 @@ const Post = ({ post, user }) => {
                 color={colors.red(1)}
               />
             )}
-            onPress={() => {
+            onPress={(key) => {
+                this.deletePost(key)
             }}
           />
         </View>
