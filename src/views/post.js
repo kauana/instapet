@@ -128,9 +128,18 @@ const Post = ({ post, user }) => {
     const postRef = db.collection('posts');
     const docRef = postRef.doc(key);
     docRef.delete().then(() => {
-      alert('deleted');
+      showMessage({
+        message: 'Post deleted!',
+        description: 'Your post was deleted successfully.',
+        type: 'success',
+      });
     }).catch((error) => {
-      alert(error);
+      console.error(error);
+      showMessage({
+        message: 'Error!',
+        description: 'Could not delete post.',
+        type: 'danger',
+      });
     });
   };
 
