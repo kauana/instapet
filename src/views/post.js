@@ -1,11 +1,12 @@
 import React from 'react';
 import {
-  StyleSheet, View, Text, Image, Dimensions, TextInput,
+  StyleSheet, View, Text, Image, Dimensions, TextInput, FlatList,
 } from 'react-native';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import { showMessage } from 'react-native-flash-message';
+import uuid from 'react-native-uuid';
 import UserPresenter from '../presenters/user_presenter';
 import colors from '../colors';
 import firebase from '../../firestore';
@@ -16,17 +17,18 @@ const db = firebase.firestore();
 const styles = StyleSheet.create({
   imageContainer: {
     width,
-    height: 400,
     padding: 0,
     backgroundColor: '#fefefe',
     alignItems: 'center',
   },
   image: {
-    flex: 1,
+    height: 400,
     width,
     marginBottom: 5,
   },
   textContainer: {
+    width,
+    textAlign: 'left',
     flexDirection: 'row',
     alignContent: 'center',
     justifyContent: 'space-between',
@@ -105,7 +107,85 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
   },
+
+  commentContainer: {
+    width,
+    textAlign: 'left',
+    flexDirection: 'column',
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
+
+  commentItem: {
+    width: width - 30,
+    marginTop: 5,
+    flexDirection: 'row',
+    alignContent: 'flex-start',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+
+  commentText: {
+    marginTop: -30,
+    marginLeft: 50,
+    fontFamily: 'regular',
+    color: colors.grey(1),
+  },
 });
+
+class Comment extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = { user: null };
+  }
+
+  componentDidMount() {
+    const { comment } = this.props;
+
+    db.collection('users').doc(comment.who).get()
+      .then((doc) => {
+        const user = doc.data();
+        this.setState({ user });
+      })
+      .catch(error => console.log(error));
+  }
+
+  render() {
+    const { user } = this.state;
+    const { comment } = this.props;
+
+    if (!user) { return <View />; }
+
+    const presenter = new UserPresenter(user);
+    let formattedTimestamp;
+
+    if (comment.timestamp) {
+      formattedTimestamp = moment(comment.timestamp.toDate()).fromNow();
+    }
+
+    return (
+      <View>
+        <View style={styles.commentItem}>
+          <View style={styles.userImageContainer}>
+            <Image
+              style={styles.userImage}
+              source={{
+                uri: presenter.avatar,
+              }}
+            />
+          </View>
+
+          <Text style={styles.userNameText}>{`${presenter.name} says:`}</Text>
+          <Text style={[styles.timestampText, { flex: 1 }]}>{formattedTimestamp}</Text>
+        </View>
+        <View style={styles.commentItem}>
+          <Text style={styles.commentText}>{comment.content}</Text>
+        </View>
+      </View>
+    );
+  }
+}
 
 const Post = ({ post, user }) => {
   const presenter = new UserPresenter(user);
@@ -167,6 +247,7 @@ const Post = ({ post, user }) => {
 
     ref.update({
       commentedByUsers: firebase.firestore.FieldValue.arrayUnion({
+        id: uuid.v4(),
         who: appUser,
         content: text,
         timestamp: new Date(),
@@ -274,6 +355,15 @@ const Post = ({ post, user }) => {
         <Text style={styles.description}>
           {post.description}
         </Text>
+      </View>
+      <View style={styles.commentContainer}>
+        <FlatList
+          data={post.commentedByUsers}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <Comment comment={item} />
+          )}
+        />
       </View>
       <View style={styles.commentBoxContainer}>
         <Icon

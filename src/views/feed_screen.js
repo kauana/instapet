@@ -1,16 +1,11 @@
 import React, { Component } from 'react';
 import {
-  TextInput,
-  Alert,
   Platform,
   StyleSheet,
   ActivityIndicator,
   FlatList,
-  Image,
   Dimensions,
-  Button,
   View,
-  Text,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Post from './post';
