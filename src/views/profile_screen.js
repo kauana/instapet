@@ -136,7 +136,6 @@ const styles = StyleSheet.create({
     padding: 0,
     backgroundColor: '#fefefe',
     alignItems: 'center',
-    // justifyContent: 'center',
   },
   image: {
     flex: 1,
@@ -273,7 +272,6 @@ class ProfileScreen extends Component {
 
     this.setState({ posts });
   }
-
 
   onUpdateUser = (doc) => {
     this.setState({ ...doc.data(), isLoading: false });

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import uuid from 'react-native-uuid';
 import {
-  Image, View, StyleSheet, TextInput, Dimensions, Platform,
+  Image, View, StyleSheet, TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -11,7 +11,8 @@ import { ImagePicker, Permissions } from 'expo';
 import colors from '../colors';
 import firebase from '../../firestore';
 
-const { width, height } = Dimensions.get('window');
+const db = firebase.firestore();
+
 const styles = StyleSheet.create({
   icon: {
     marginLeft: 15,
@@ -42,67 +43,60 @@ class CreatePostScreen extends Component {
 
   constructor(props) {
     super(props);
-    this.unsubscribe = null;
+    this.unsubscribeFollowed = null;
     const { navigation } = this.props;
     this.userID = navigation.getParam('userID', 'NO-ID');
-    this.writeRef = firebase.firestore().collection('posts');
+    this.writeRef = db.collection('posts');
 
     this.state = {
       description: '',
       imageURL: 'https://bigriverequipment.com/wp-content/uploads/2017/10/no-photo-available.png',
       hasCameraPermission: false,
       uploading: false,
+      followed: [],
     };
   }
 
   async componentDidMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
     this.setState({ hasCameraPermission: status === 'granted' });
+
+    this.unsubscribeFollowed = db.collection('followed').doc(this.userID).onSnapshot(this.onUpdateFollowed);
   }
 
-  addThisPost = () => {
-    const appUser = firebase.auth().currentUser.uid;
+  componentWillUnmount() {
+    this.unsubscribeFollowed();
+  }
 
-    function addRandomComments(userID) {
-      const randomComment = [];
-      if (userID === '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
-        randomComment.push({
-          ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3: `comment${Math.floor(Math.random() * 10)}`,
-        });
-        randomComment.push({
-          iDJKuWxNYBhz0eUzzfpIyQjD7GE2: `comment${Math.floor(Math.random() * 10)}`,
-        });
-      } else if (userID === 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
-        randomComment.push({
-          '8tIDp1pDSnQnq3tsgNwgD1SR3ul1': `comment${Math.floor(Math.random() * 10)}`,
-        });
-      }
-      return randomComment;
+  // get a list of users following this user so we can show them this post
+  onUpdateFollowed = (doc) => {
+    if (!doc.exists) {
+      db.collection('followed').doc(this.userID).set({});
+      return;
     }
 
-    function addFollowers(userID) {
-      if (userID === '8tIDp1pDSnQnq3tsgNwgD1SR3ul1') {
-        return ['ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2'];
-      } if (userID === 'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3') {
-        return ['iDJKuWxNYBhz0eUzzfpIyQjD7GE2'];
-      }
-      return ['8tIDp1pDSnQnq3tsgNwgD1SR3ul1', 'M1FmnyjTLFgIsv4t3bdMz0UXO7s2',
-        'RY8ZaZSMcUad6S05saGyKiKc7pT2', 'VAjb1wSdJ6VahRrXSKL723nFaRc2',
-        'ZEk6KN5SRYPtcrc3q8gVjP6Fc0H3', 'iDJKuWxNYBhz0eUzzfpIyQjD7GE2', 'ncZ9X1qYG7PxwBW4eI9Zps8Qt3O2',
-        'oXvTKGNhvITos3fXO15QfsCvMgE3', 'rVzvzPzevqTv5YyrLdeAAqHkcaf1'];
-    }
+    const userIDs = Object.keys(doc.data());
+    this.setState({ followed: userIDs });
+  }
 
-    // timestampString: Date().toLocaleString().substring(15, 25),
-    this.writeRef.add({
-      description: this.state.description,
-      likes: false,
-      imageURL: this.state.imageURL,
-      userID: appUser,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      followerIDs: addFollowers(appUser),
-      commentedByUser: addRandomComments(appUser),
-      likesCount: 0,
-      timestampString: Date().toLocaleString().substring(0, 4) + Date().toLocaleString().substring(15, 25),
+  createPost = () => {
+    const user = firebase.auth().currentUser;
+    const { imageURL, description, followed } = this.state;
+
+    db.collection('posts').add({
+      imageURL,
+      description,
+      followed,
+      likeCount: 0,
+      commentedByUsers: '',
+      likedByUsers: '',
+      userID: user.uid,
+      timestamp: new Date().toLocaleString(),
+    }).then(() => {
+      this.setState({
+        description: '',
+        imageURL: 'https://bigriverequipment.com/wp-content/uploads/2017/10/no-photo-available.png',
+      });
     });
   }
 
@@ -157,7 +151,7 @@ class CreatePostScreen extends Component {
 
   render() {
     const {
-      imageURL, description, hasCameraPermission, uploading,
+      hasCameraPermission, uploading, imageURL, description,
     } = this.state;
 
     return (
@@ -185,9 +179,13 @@ class CreatePostScreen extends Component {
               multiline
               style={{ flex: 1, paddingHorizontal: 16 }}
               placeholder="Enter description here..."
-              onChangeText={(text) => {
-                this.setState({ description: text });
-              }}
+              keyboarsAppearance="light"
+              keyboardType="default"
+              returnKeyType="done"
+              blurOnSubmit
+              autoFocus
+              value={description}
+              onChangeText={text => this.setState({ description: text })}
             />
           </View>
 
@@ -245,7 +243,6 @@ class CreatePostScreen extends Component {
               )
               : null
           }
-
           </View>
 
           <View style={styles.buttonContainer}>
@@ -262,8 +259,7 @@ class CreatePostScreen extends Component {
               }}
               containerStyle={{ marginVertical: 10 }}
               titleStyle={{ fontFamily: 'bold', color: 'white' }}
-              onPress={() => this.addThisPost()}
-              // onPress={this.postPhoto}
+              onPress={this.createPost}
             />
           </View>
         </View>
@@ -276,3 +272,4 @@ export default CreatePostScreen;
 
 // urlToBlob function from: https://github.com/expo/firebase-storage-upload-example/issues/14
 // https://github.com/expo/firebase-storage-upload-example/blob/master/App.js
+// Source: https://blog.expo.io/instagram-clone-using-firebase-react-native-expo-cc32f61c7bba?gi=9d6b2103a48f
