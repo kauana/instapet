@@ -91,7 +91,7 @@ class CreatePostScreen extends Component {
       commentedByUsers: [],
       likedByUsers: [],
       userID: user.uid,
-      timestamp: new Date().toLocaleString(),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     }).then(() => {
       this.setState({
         description: '',

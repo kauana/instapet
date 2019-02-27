@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import moment from 'moment';
 import UserPresenter from '../presenters/user_presenter';
 import colors from '../colors';
 import firebase from '../../firestore';
@@ -125,7 +126,7 @@ const Post = ({ post, user }) => {
 
         <Text style={styles.userNameText}>{presenter.name}</Text>
 
-        <Text style={styles.timestampText}>{post.timestamp}</Text>
+        <Text style={styles.timestampText}>{moment(post.timestamp.toDate()).fromNow()}</Text>
       </View>
 
       <Image style={styles.image} resizeMode="cover" source={{ uri: post.imageURL }} />
