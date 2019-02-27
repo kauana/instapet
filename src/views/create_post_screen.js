@@ -8,6 +8,7 @@ import {
   Text, Button,
 } from 'react-native-elements';
 import { ImagePicker, Permissions } from 'expo';
+import { showMessage } from 'react-native-flash-message';
 import colors from '../colors';
 import firebase from '../../firestore';
 
@@ -259,7 +260,14 @@ class CreatePostScreen extends Component {
               }}
               containerStyle={{ marginVertical: 10 }}
               titleStyle={{ fontFamily: 'bold', color: 'white' }}
-              onPress={this.createPost}
+              onPress={ () => {
+                this.createPost;
+                showMessage({
+                    message: 'Success!',
+                    description: 'Your picture was posted!',
+                    type: 'success',
+                });
+              }}
             />
           </View>
         </View>
