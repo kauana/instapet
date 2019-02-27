@@ -168,7 +168,7 @@ const Post = ({ post, user }) => {
     ref.update({
       commentedByUser: firebase.firestore.FieldValue.arrayUnion({
         who: appUser,
-        contentx: text,
+        content: text,
         timestamp: new Date(),
       }),
     })
