@@ -1,10 +1,11 @@
 import React from 'react';
 import {
-  StyleSheet, View, Text, Image, Dimensions,
+  StyleSheet, View, Text, Image, Dimensions, TextInput,
 } from 'react-native';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
+import { showMessage } from 'react-native-flash-message';
 import UserPresenter from '../presenters/user_presenter';
 import colors from '../colors';
 import firebase from '../../firestore';
@@ -90,6 +91,20 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
+
+  commentBoxContainer: {
+    width,
+    paddingLeft: 10,
+    paddingRight: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  commentBox: {
+    marginLeft: 10,
+    flex: 1,
+  },
 });
 
 const Post = ({ post, user }) => {
@@ -109,28 +124,63 @@ const Post = ({ post, user }) => {
     });
   };
 
-  deletePost = (key) => {
-    let postRef = db.collection('posts');
-    let docRef = postRef.doc(post.key);
-    docRef.delete().then(function(){
-        alert("deleted")
-        }).catch(function(error){
-            alert(error);
-        });
-  }
+  const deletePost = (key) => {
+    const postRef = db.collection('posts');
+    const docRef = postRef.doc(key);
+    docRef.delete().then(() => {
+      alert('deleted');
+    }).catch((error) => {
+      alert(error);
+    });
+  };
 
-/*
+  /*
   editPost = () => {
     let postRef = db.collection('posts');
     let docRef = postRef.doc(post.key);
     docRef.update({
-
     })
   }
-*/
+  */
+
+  let commentContent; let
+    commentContentField;
+
+  const comment = (text, el) => {
+    if (!text) {
+      showMessage({
+        message: 'Sorry!',
+        description: 'Cannot post comment without content.',
+        type: 'warning',
+      });
+      return;
+    }
+
+    ref.update({
+      commentedByUser: firebase.firestore.FieldValue.arrayUnion({
+        who: appUser,
+        contentx: text,
+        timestamp: new Date(),
+      }),
+    })
+      .then(() => {
+        showMessage({
+          message: 'Done!',
+          type: 'success',
+        });
+        el.clear();
+      })
+      .catch(error => console.log(error));
+  };
 
   const likesCount = post.likedByUsers.length;
   const liked = post.likedByUsers.includes(appUser);
+
+  let formattedTimestamp;
+
+  if (post.timestamp) {
+    formattedTimestamp = moment(post.timestamp.toDate()).fromNow();
+  }
 
   return (
     <View style={styles.imageContainer}>
@@ -146,7 +196,7 @@ const Post = ({ post, user }) => {
 
         <Text style={styles.userNameText}>{presenter.name}</Text>
 
-        <Text style={styles.timestampText}>{moment(post.timestamp.toDate()).fromNow()}</Text>
+        <Text style={styles.timestampText}>{formattedTimestamp}</Text>
       </View>
 
       <Image style={styles.image} resizeMode="cover" source={{ uri: post.imageURL }} />
@@ -207,9 +257,7 @@ const Post = ({ post, user }) => {
                 color={colors.red(1)}
               />
             )}
-            onPress={(key) => {
-                this.deletePost(key)
-            }}
+            onPress={() => deletePost(post.key)}
           />
         </View>
       </View>
@@ -217,6 +265,25 @@ const Post = ({ post, user }) => {
         <Text style={styles.description}>
           {post.description}
         </Text>
+      </View>
+      <View style={styles.commentBoxContainer}>
+        <Icon
+          name="comment-text-multiple"
+          size={24}
+          color={colors.grey(0.5)}
+        />
+        <TextInput
+          style={styles.commentBox}
+          placeholder="Add comment..."
+          ref={(el) => { commentContentField = el; }}
+          onChangeText={(text) => { commentContent = text; }}
+        />
+        <Button
+          buttonStyle={{ backgroundColor: 'transparent' }}
+          titleStyle={{ color: colors.grey(0.7), fontFamily: 'light' }}
+          title="Post"
+          onPress={() => { comment(commentContent, commentContentField); }}
+        />
       </View>
     </View>
   );

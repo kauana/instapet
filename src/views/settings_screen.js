@@ -66,7 +66,7 @@ class SettingsScreen extends Component {
   }
 
   saveNewPassword = () => {
-    const currentUser = firebase.auth().currentUser;
+    const { currentUser } = firebase.auth();
     const { currentPassword, newPassword, confirmedPassword } = this.state;
 
     if (newPassword !== confirmedPassword) {

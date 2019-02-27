@@ -20,7 +20,7 @@ const TabNavigator = createMaterialBottomTabNavigator({
   Search: SearchScreen,
   Favorites: FavoritesScreen,
 }, {
-  initialRouteName: 'Profile',
+  initialRouteName: 'Feed',
   activeColor: colors.red(1),
   inactiveColor: 'white',
   barStyle: { backgroundColor: colors.green1(1) },
