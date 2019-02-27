@@ -54,7 +54,7 @@ class CreatePostScreen extends Component {
       imageURL: 'https://bigriverequipment.com/wp-content/uploads/2017/10/no-photo-available.png',
       hasCameraPermission: false,
       uploading: false,
-      followed: [],
+      followerIDs: [],
     };
   }
 
@@ -260,12 +260,12 @@ class CreatePostScreen extends Component {
               }}
               containerStyle={{ marginVertical: 10 }}
               titleStyle={{ fontFamily: 'bold', color: 'white' }}
-              onPress={ () => {
-                this.createPost;
+              onPress={() => {
+                this.createPost();
                 showMessage({
-                    message: 'Success!',
-                    description: 'Your picture was posted!',
-                    type: 'success',
+                  message: 'Success!',
+                  description: 'Your picture was posted!',
+                  type: 'success',
                 });
               }}
             />
