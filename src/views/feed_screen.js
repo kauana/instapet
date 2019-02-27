@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import InputScrollView from 'react-native-input-scroll-view';
 import Post from './post';
 import firebase from '../../firestore';
 
@@ -168,12 +169,14 @@ class FeedScreen extends Component {
     }
     return (
       <View style={styles.container}>
-        <FlatList
-          data={posts}
-          renderItem={({ item }) => (
-            <Post post={item} user={item.user} />
-          )}
-        />
+        <InputScrollView>
+          <FlatList
+            data={posts}
+            renderItem={({ item }) => (
+              <Post post={item} user={item.user} />
+            )}
+          />
+        </InputScrollView>
       </View>
     );
   }

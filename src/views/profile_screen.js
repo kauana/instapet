@@ -7,6 +7,7 @@ import {
 } from 'react-native-tab-view';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Button } from 'react-native-elements';
+import InputScrollView from 'react-native-input-scroll-view';
 import firebase from '../../firestore';
 import colors from '../colors';
 import UserPresenter from '../presenters/user_presenter';
@@ -422,13 +423,15 @@ class ProfileScreen extends Component {
 
   renderPosts = (posts, user) => (
     <View style={styles.userProfilePostsContainer}>
-      <FlatList
-        data={posts}
-        keyExtractor={item => item.key}
-        renderItem={({ item }) => (
-          <Post post={item} user={user} />
-        )}
-      />
+      <InputScrollView>
+        <FlatList
+          data={posts}
+          keyExtractor={item => item.key}
+          renderItem={({ item }) => (
+            <Post post={item} user={user} />
+          )}
+        />
+      </InputScrollView>
     </View>
   );
 
