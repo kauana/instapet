@@ -12,6 +12,7 @@ import SettingsScreen from './src/views/settings_screen';
 import EditProfileScreen from './src/views/edit_profile_screen';
 import TabNavigator from './src/views/tab_navigator';
 import ProfileScreen from './src/views/profile_screen';
+import CreatePostScreen from './src/views/create_post_screen';
 
 // Silences warning due to firebase using long-timers:
 //   https://github.com/facebook/react-native/issues/12981
@@ -32,6 +33,7 @@ const AppNavigator = createStackNavigator({
   Settings: { screen: SettingsScreen },
   EditProfile: { screen: EditProfileScreen },
   UserProfile: { screen: ProfileScreen },
+  EditPost: { screen: CreatePostScreen },
 }, {
   headerLayoutPreset: 'center',
 });

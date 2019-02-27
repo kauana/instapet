@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  FlatList, Animated, Platform, StyleSheet, View, Text, Image, ActivityIndicator, Dimensions,
+  FlatList, Animated, Platform, StyleSheet, View, Text, Image, ActivityIndicator,
 } from 'react-native';
 import {
   TabView, TabBar, PagerScroll, PagerPan, SceneMap,
@@ -15,7 +15,6 @@ import UserRow from './user_row';
 import Post from './post';
 
 const db = firebase.firestore();
-const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -421,19 +420,23 @@ class ProfileScreen extends Component {
     );
   }
 
-  renderPosts = (posts, user) => (
-    <View style={styles.userProfilePostsContainer}>
-      <InputScrollView>
-        <FlatList
-          data={posts}
-          keyExtractor={item => item.key}
-          renderItem={({ item }) => (
-            <Post post={item} user={user} />
-          )}
-        />
-      </InputScrollView>
-    </View>
-  );
+  renderPosts = (posts, user) => {
+    const { navigation } = this.props;
+
+    return (
+      <View style={styles.userProfilePostsContainer}>
+        <InputScrollView>
+          <FlatList
+            data={posts}
+            keyExtractor={item => item.key}
+            renderItem={({ item }) => (
+              <Post post={item} user={user} navigation={navigation} />
+            )}
+          />
+        </InputScrollView>
+      </View>
+    );
+  };
 
   renderUserList = (userIDs) => {
     const { navigation } = this.props;

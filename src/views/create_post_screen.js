@@ -40,13 +40,23 @@ class CreatePostScreen extends Component {
         color={tintColor}
       />
     ),
+    title: 'InstaPet',
+    headerTintColor: colors.red(1),
+    headerStyle: {
+      backgroundColor: colors.green1(1),
+    },
+    headerTitleStyle: {
+      color: 'white',
+    },
   })
 
   constructor(props) {
     super(props);
     this.unsubscribeFollowed = null;
+    this.unsubscribePost = null;
     const { navigation } = this.props;
     this.userID = navigation.getParam('userID', 'NO-ID');
+    this.postID = navigation.getParam('postID', null);
     this.writeRef = db.collection('posts');
 
     this.state = {
@@ -63,10 +73,16 @@ class CreatePostScreen extends Component {
     this.setState({ hasCameraPermission: status === 'granted' });
 
     this.unsubscribeFollowed = db.collection('followed').doc(this.userID).onSnapshot(this.onUpdateFollowed);
+    this.unsubscribePost = db.collection('posts').doc(this.postID).onSnapshot(this.onUpdatePost);
   }
 
   componentWillUnmount() {
-    this.unsubscribeFollowed();
+    if (this.unsubscribeFollowed) {
+      this.unsubscribeFollowed();
+    }
+    if (this.unsubscribePost) {
+      this.unsubscribePost();
+    }
   }
 
   // get a list of users following this user so we can show them this post
@@ -80,9 +96,30 @@ class CreatePostScreen extends Component {
     this.setState({ followerIDs: userIDs });
   }
 
-  createPost = () => {
+  onUpdatePost = (doc) => {
+    const post = doc.data();
+    this.setState({ ...post });
+  }
+
+  save = () => {
     const user = firebase.auth().currentUser;
     const { imageURL, description, followerIDs } = this.state;
+    const { navigation } = this.props;
+
+    if (this.postID) {
+      db.collection('posts').doc(this.postID).update({
+        imageURL,
+        description,
+        followerIDs,
+      }).then(() => {
+        this.setState({
+          description: '',
+          imageURL: 'https://bigriverequipment.com/wp-content/uploads/2017/10/no-photo-available.png',
+        });
+        navigation.goBack();
+      });
+      return;
+    }
 
     db.collection('posts').add({
       imageURL,
@@ -261,7 +298,7 @@ class CreatePostScreen extends Component {
               containerStyle={{ marginVertical: 10 }}
               titleStyle={{ fontFamily: 'bold', color: 'white' }}
               onPress={() => {
-                this.createPost();
+                this.save();
                 showMessage({
                   message: 'Success!',
                   description: 'Your picture was posted!',

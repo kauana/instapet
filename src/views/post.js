@@ -187,7 +187,7 @@ class Comment extends React.Component {
   }
 }
 
-const Post = ({ post, user }) => {
+const Post = ({ post, user, navigation }) => {
   const presenter = new UserPresenter(user);
   const ref = db.collection('posts').doc(post.key);
   const appUser = firebase.auth().currentUser.uid;
@@ -223,14 +223,9 @@ const Post = ({ post, user }) => {
     });
   };
 
-  /*
-  editPost = () => {
-    let postRef = db.collection('posts');
-    let docRef = postRef.doc(post.key);
-    docRef.update({
-    })
-  }
-  */
+  const editPost = () => {
+    navigation.push('EditPost', { postID: post.key });
+  };
 
   let commentContent; let
     commentContentField;
@@ -337,8 +332,7 @@ const Post = ({ post, user }) => {
                 color={colors.red(1)}
               />
             )}
-            onPress={() => {
-            }}
+            onPress={() => editPost()}
           />
           <Button
             buttonStyle={{ backgroundColor: 'transparent' }}

@@ -164,6 +164,8 @@ class FeedScreen extends Component {
 
   render() {
     const { posts, loading } = this.state;
+    const { navigation } = this.props;
+
     if (loading) {
       return <ActivityIndicator size="large" />;
     }
@@ -173,7 +175,7 @@ class FeedScreen extends Component {
           <FlatList
             data={posts}
             renderItem={({ item }) => (
-              <Post post={item} user={item.user} />
+              <Post post={item} user={item.user} navigation={navigation} />
             )}
           />
         </InputScrollView>
