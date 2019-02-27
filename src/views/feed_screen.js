@@ -129,7 +129,7 @@ class FeedScreen extends Component {
     querySnapshot.forEach((doc) => {
       const {
         imageURL, likedByUsers, description, userID, timestamp, followed,
-        commentedByUsers, likesCount,
+        commentedByUsers,
       } = doc.data();
 
       promises.push(db.collection('users').doc(userID).get()
@@ -142,7 +142,6 @@ class FeedScreen extends Component {
             followed,
             commentedByUsers,
             likedByUsers,
-            likesCount,
             userID,
             user: userDoc.data(),
           });
