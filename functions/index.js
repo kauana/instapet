@@ -10,6 +10,22 @@ const algoliasearch = require('algoliasearch');
 admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
 
+exports.processHashtagsCreate = functions.firestore.document('posts/{postID}')
+  .onCreate((snap, context) => {
+    const postDescription = snap.data().description;
+    const hashtags = parseHashtags(postDescription);
+
+    // data is what goes to algolia
+    const data = {
+      objectID: context.params.postID,
+      hashtags,
+    };
+
+    return addToAlgolia(data, 'posts')
+      .then(res => console.log('SUCCESS ALGOLIA post ADD', res))
+      .catch(err => console.log('ERROR ALGOLIA post ADD', err));
+  });
+
 // listen for creating a user in Firestore
 exports.addUserToAlgolia = functions.firestore.document('users/{userID}')
   .onCreate((snap, context) => {
@@ -68,6 +84,7 @@ function addToAlgolia(object, indexName) {
       .catch((err) => { console.log('err BAD', err); reject(err); });
   });
 }
+
 function editToAlgolia(object, indexName) {
   const ALGOLIA_ID = functions.config().algolia.app_id;
   const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
@@ -79,6 +96,7 @@ function editToAlgolia(object, indexName) {
       .catch((err) => { console.log('err BAD', err); reject(err); });
   });
 }
+
 function removeFromAlgolia(objectID, indexName) {
   const ALGOLIA_ID = functions.config().algolia.app_id;
   const ALGOLIA_ADMIN_KEY = functions.config().algolia.api_key;
@@ -90,3 +108,16 @@ function removeFromAlgolia(objectID, indexName) {
       .catch((err) => { console.log('err BAD', err); reject(err); });
   });
 }
+
+const parseHashtags = (str) => {
+  const regex = /(?:^|\s)(?:#)([a-zA-Z\d]+)/gm;
+  const matches = new Set();
+  let match;
+
+  // eslint-disable-next-line no-cond-assign
+  while ((match = regex.exec(str))) {
+    matches.add(match[1]);
+  }
+
+  return Array.from(matches);
+};
