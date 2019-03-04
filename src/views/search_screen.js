@@ -9,6 +9,59 @@ import {
 } from 'react-instantsearch-native';
 import colors from '../colors';
 import UserPresenter from '../presenters/user_presenter';
+import Post from './post';
+import firebase from '../../firestore';
+
+const db = firebase.firestore();
+
+class PostLoader extends Component {
+  constructor(props) {
+    super(props);
+
+    this.cancelled = false;
+
+    this.state = {
+      post: null,
+      user: null,
+    };
+  }
+
+  componentDidMount() {
+    const { postID } = this.props;
+    console.log(postID);
+    db.collection('posts').doc(postID).get().then((postSnapshot) => {
+      const post = {
+        key: postID,
+        ...postSnapshot.data(),
+      };
+
+      if (!post.userID) { return; }
+
+      db.collection('users').doc(post.userID).get().then((userSnapshot) => {
+        const user = userSnapshot.data();
+        if (this.cancelled) { return; }
+        this.setState({ post, user });
+      })
+        .catch(error => console.error(error));
+    })
+      .catch(error => console.error(error));
+  }
+
+  componentWillUnmount() {
+    this.cancelled = true;
+  }
+
+  render() {
+    const { navigation } = this.props;
+    const { post, user } = this.state;
+
+    if (post && user) {
+      return <Post post={post} user={user} navigation={navigation} />;
+    }
+
+    return null;
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -49,7 +102,7 @@ const styles = StyleSheet.create({
 });
 
 const SearchResults = connectInfiniteHits(({
-  hits, hasMore, refine, navigation,
+  hits, hasMore, refine, navigation, searchIndex,
 }) => {
   /* if there are still results, you can
   call the refine function to load more */
@@ -67,23 +120,24 @@ const SearchResults = connectInfiniteHits(({
       renderItem={({ item }) => {
         const presenter = new UserPresenter(item);
 
-        return (
-          <TouchableHighlight
-            underlayColor={colors.grey(0.1)}
-            onPress={
+        if (searchIndex === 'users') {
+          return (
+            <TouchableHighlight
+              underlayColor={colors.grey(0.1)}
+              onPress={
               () => navigation.push('UserProfile', { userID: item.objectID })
             }
-          >
-            <View style={styles.searchResult}>
-              <Image
-                style={styles.userImage}
-                source={{ uri: presenter.avatar }}
-              />
-              <View style={{ flexDirection: 'column' }}>
-                <View style={styles.userNameRow}>
-                  <Text style={styles.userNameText}>{presenter.name}</Text>
-                </View>
-                {
+            >
+              <View style={styles.searchResult}>
+                <Image
+                  style={styles.userImage}
+                  source={{ uri: presenter.avatar }}
+                />
+                <View style={{ flexDirection: 'column' }}>
+                  <View style={styles.userNameRow}>
+                    <Text style={styles.userNameText}>{presenter.name}</Text>
+                  </View>
+                  {
               item.city && item.city.length > 0
                 ? (
                   <View style={styles.cityRow}>
@@ -92,19 +146,29 @@ const SearchResults = connectInfiniteHits(({
                 )
                 : null
             }
+                </View>
               </View>
-            </View>
-          </TouchableHighlight>
-        );
+            </TouchableHighlight>
+          );
+        } if (searchIndex === 'posts') {
+          return <PostLoader postID={item.objectID} navigation={navigation} />;
+        }
+
+        return null;
       }}
     />
   );
 });
 
-const SearchBox = connectSearchBox(({ refine, currentRefinement }) => (
+const SearchBox = connectSearchBox(({
+  refine, currentRefinement, onChangeText,
+}) => (
   <SearchBar
-    placeholder="Search a user..."
-    onChangeText={text => refine(text)}
+    placeholder="Search user or hashtag..."
+    onChangeText={(text) => {
+      refine(text);
+      onChangeText(text);
+    }}
     value={currentRefinement}
     spellCheck={false}
     autoCorrect={false}
@@ -115,20 +179,48 @@ const SearchBox = connectSearchBox(({ refine, currentRefinement }) => (
 ));
 
 class SearchScreen extends Component {
-  static navigationOptions = () => ({ tabBarIcon: ({ tintColor }) => (<Icon name="magnify" size={24} color={tintColor} />) });
+  static navigationOptions = () => ({
+    tabBarIcon: ({ tintColor }) => (<Icon name="magnify" size={24} color={tintColor} />),
+    title: 'InstaPet',
+    headerTintColor: colors.red(1),
+    headerStyle: {
+      backgroundColor: colors.green1(1),
+    },
+    headerTitleStyle: {
+      color: 'white',
+    },
+  });
+
+  constructor(props) {
+    super(props);
+    const { navigation } = this.props;
+
+    this.state = {
+      text: navigation.getParam('searchString', ''),
+    };
+  }
+
+  searchIndex = () => {
+    const { text } = this.state;
+    return text.startsWith('#') ? 'posts' : 'users';
+  }
 
   render() {
     const { navigation } = this.props;
+    const { text } = this.state;
 
     return (
       <ScrollView style={styles.container}>
         <InstantSearch
           appId="FJ2KIO1VIS"
           apiKey="4b39aeba35b24341358ffdc2bc2400de"
-          indexName="users"
+          indexName={this.searchIndex()}
         >
-          <SearchBox />
-          <SearchResults navigation={navigation} />
+          <SearchBox
+            defaultRefinement={text}
+            onChangeText={newText => this.setState({ text: newText })}
+          />
+          <SearchResults navigation={navigation} searchIndex={this.searchIndex()} />
         </InstantSearch>
       </ScrollView>
     );

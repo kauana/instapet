@@ -207,7 +207,7 @@ class ProfileScreen extends Component {
     querySnapshot.forEach((doc) => {
       const {
         imageURL, likedByUsers, description, userID, timestamp, followed,
-        commentedByUsers, likesCount,
+        commentedByUsers,
       } = doc.data();
 
       posts.push({
@@ -219,7 +219,6 @@ class ProfileScreen extends Component {
         followed,
         commentedByUsers,
         likedByUsers,
-        likesCount,
       });
     });
 

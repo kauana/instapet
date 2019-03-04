@@ -189,6 +189,7 @@ class Comment extends React.Component {
 
 const Post = ({ post, user, navigation }) => {
   const presenter = new UserPresenter(user);
+  if (!post.key) { return null; }
   const ref = db.collection('posts').doc(post.key);
   const appUser = firebase.auth().currentUser.uid;
 
@@ -266,6 +267,24 @@ const Post = ({ post, user, navigation }) => {
   if (post.timestamp) {
     formattedTimestamp = moment(post.timestamp.toDate()).fromNow();
   }
+
+  // highlight hashtags
+  const renderDescription = description => (/* eslint-disable react/no-array-index-key */
+    description.split(/(\s+)/)
+      .map((substring, index) => (
+        substring.startsWith('#')
+          ? (
+            <Text
+              key={`${post.postID}-${index}`}
+              style={{ color: colors.green1(1) }}
+              onPress={() => navigation.push('SearchStack', { searchString: substring })}
+            >
+              {substring}
+            </Text>
+          )
+          : <Text key={`${post.postID}-${index}`}>{substring}</Text>
+      ))
+  );
 
   return (
     <View style={styles.imageContainer}>
@@ -351,7 +370,7 @@ const Post = ({ post, user, navigation }) => {
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.description}>
-          {post.description}
+          {renderDescription(post.description)}
         </Text>
       </View>
       <View style={styles.commentContainer}>
