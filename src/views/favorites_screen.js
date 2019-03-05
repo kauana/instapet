@@ -87,7 +87,6 @@ class FavoritesScreen extends Component {
   constructor() {
     super();
     const appUser = firebase.auth().currentUser.uid;
-    // changed the where clause, from followerID to likedByUsers; now has error
     this.feedRef = db.collection('posts')
       .orderBy('timestamp', 'desc')
       .where('likedByUsers', 'array-contains', appUser);

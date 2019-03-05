@@ -11,7 +11,6 @@ import ProfileScreen from './profile_screen';
 import CameraScreen from './create_post_screen';
 import FavoritesScreen from './favorites_screen';
 
-//const FavoritesScreen = () => (<View />);
 FavoritesScreen.navigationOptions = () => ({ tabBarIcon: ({ tintColor }) => (<Icon name="heart" size={24} color={tintColor} />) });
 
 const TabNavigator = createMaterialBottomTabNavigator({
