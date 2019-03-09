@@ -6,11 +6,17 @@ import {
   FlatList,
   Dimensions,
   View,
+  TouchableOpacity,
+  Text,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import InputScrollView from 'react-native-input-scroll-view';
 import Post from './post';
 import firebase from '../../firestore';
+// from here
+import {Constants, Notifications, Permissions} from 'expo';
 
 const { width } = Dimensions.get('window');
 const db = firebase.firestore();
@@ -39,6 +45,8 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     justifyContent: 'space-between',
     alignItems: 'center',
+    alignSelf: 'flex-start',
+    fontSize: 50,
     paddingLeft: 15,
     paddingRight: 15,
   },
@@ -74,6 +82,7 @@ const styles = StyleSheet.create({
 });
 
 class FeedScreen extends Component {
+
   static navigationOptions = () => ({
     tabBarIcon: ({ tintColor }) => (
       <Icon
@@ -94,16 +103,50 @@ class FeedScreen extends Component {
     this.state = {
       posts: [],
       loading: true,
-    };
+    };  
+
   }
 
-  componentDidMount() {
-    this.unsubscribe = this.feedRef.onSnapshot(this.onPostUpdate);
+async registerForPushNotificationsAsync() {
+  
+  let { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+
+  // Stop here if the user did not grant permissions
+  if (status !== 'granted') {
+    console.log(status,"hello, register")
+    return;
+  }
+  // Get the token that uniquely identifies this device
+  let token = await Notifications.getExpoPushTokenAsync();
+
+  userID = firebase.auth().currentUser.uid;
+  console.log("userID is", userID)
+  console.log("token is",token)
+  firebase.firestore().collection('users').doc(userID).update({ token: token });
+}    
+
+
+
+  async componentDidMount() {
+    this.unsubscribe = this.feedRef.onSnapshot(this.onPostUpdate); 
+
+    // We need to ask for Notification permissions for ios devices
+    let result = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+
+    if (Constants.isDevice && result.status === 'granted') {
+        console.log('Notification permissions granted.')
+    }
+
+    // If we want to do something with the notification when the app
+    // is active, we need to listen to notification events and 
+    // handle them in a callback
+    Notifications.addListener(this.handleNotification);   
   }
 
   componentWillUnmount() {
     this.unsubscribe();
   }
+
 
   updateComments = (key, index) => {
     const { commentText } = this.state;
@@ -161,6 +204,12 @@ class FeedScreen extends Component {
     });
   }
 
+  onPress = () => {
+    this.setState({
+      count: this.state.count+1
+    })
+  }
+
   render() {
     const { posts, loading } = this.state;
     const { navigation } = this.props;
@@ -170,6 +219,11 @@ class FeedScreen extends Component {
     }
     return (
       <View style={styles.container}>
+        <TextInput style = {styles.textContainer}
+          onSubmitEditing={this.registerForPushNotificationsAsync}
+          placeholder={'type in something, press enter to save token to fire store'}
+        />
+  
         <InputScrollView>
           <FlatList
             data={posts}
