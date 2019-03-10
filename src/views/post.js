@@ -11,6 +11,8 @@ import UserPresenter from '../presenters/user_presenter';
 import colors from '../colors';
 import firebase from '../../firestore';
 
+import {Notifications, Permissions} from 'expo';
+
 const { width } = Dimensions.get('window');
 const db = firebase.firestore();
 
@@ -140,7 +142,9 @@ class Comment extends React.Component {
     this.state = { user: null };
   }
 
+
   componentDidMount() {
+
     const { comment } = this.props;
 
     db.collection('users').doc(comment.who).get()
@@ -240,6 +244,34 @@ const Post = ({ post, user, navigation }) => {
       });
       return;
     }
+  
+  
+  // need to change the token to the post author's 
+   var token = "ExponentPushToken[vH7dGfALsl3PIQo_kpWM3P]"
+    console.log('hard coded token! change to post user token', token)
+
+    const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
+    const tokenArray = [];
+
+    tokenArray.push({
+      to: token,
+      title: "hello",
+      body: "hard coded receiver 1",
+      sound: "default",
+    }
+    )
+
+    token = "ExponentPushToken[r97VR2I9tyZpzj5z5Gm_4k]"
+    console.log('hard coded token! change to post user token', token)
+
+    tokenArray.push({
+      to: token,
+      title: "hello",
+      body: "hard coded  2",
+      sound: "default",
+    }
+    )
+
 
     ref.update({
       commentedByUsers: firebase.firestore.FieldValue.arrayUnion({
@@ -257,6 +289,19 @@ const Post = ({ post, user, navigation }) => {
         el.clear();
       })
       .catch(error => console.log(error));
+
+      return fetch(PUSH_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tokenArray),
+        sound: "default",
+      }).then(response => response.json())
+        .then(responseJson => console.log('response is :', responseJson, 'token is', token))
+        .catch(error => console.error("error is", error));
+
   };
 
   const likesCount = post.likedByUsers.length;

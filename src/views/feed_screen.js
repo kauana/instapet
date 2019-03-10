@@ -120,13 +120,23 @@ class FeedScreen extends Component {
       console.log(status, "you didn't grant permission for notification")
       return;
     }
+
+    
     // Get the token that uniquely identifies this device
     let token = await Notifications.getExpoPushTokenAsync();
 
     userID = firebase.auth().currentUser.uid;
+    
     console.log("feed screen, userID is", userID)
     console.log("feed screen, token is", token)
+    console.log("current time", Date())
+
     firebase.firestore().collection('users').doc(userID).update({ token: token });
+
+    /*
+    // change token to the post author's token
+    
+    console.log('post user token is', token)
 
     const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
     const tokenArray = [];
@@ -134,7 +144,7 @@ class FeedScreen extends Component {
     tokenArray.push({
       to: token,
       title: "hello",
-      body: "token saved to fire store, notification sent to you",
+      body: "you get new comment",
       sound: "default",
     }
     )
@@ -149,7 +159,39 @@ class FeedScreen extends Component {
     }).then(response => response.json())
       .then(responseJson => console.log('response is :', responseJson, 'token is', token))
       .catch(error => console.error("error is", error));
+      */
   }    
+
+  async sendPushNotification() {
+
+    const appUser = firebase.auth().currentUser.uid
+
+    token = await Notifications.getExpoPushTokenAsync();
+
+    const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
+    const tokenArray = [];
+
+    tokenArray.push({
+      to: token,
+      title: "hello",
+      body: "notification to app user from sendPushNotification feed screen",
+      sound: "default",
+    }
+    )
+    return fetch(PUSH_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tokenArray),
+      sound: "default",
+    }).then(response => response.json())
+      .then(responseJson => console.log('response is :', responseJson, 'token is', token))
+      .catch(error => console.error("error is", error));
+
+  }
+
 
 
   async componentDidMount() {
@@ -189,7 +231,6 @@ class FeedScreen extends Component {
     console.log(index);
     console.log(commentText);
 
-
     const appUser = firebase.auth().currentUser.uid;
     firebase.firestore().collection('posts').doc(key).update({
       commentedByUser: firebase.firestore.FieldValue.arrayUnion({
@@ -198,6 +239,8 @@ class FeedScreen extends Component {
         contents: commentText,
       }),
     });
+
+    
   }
 
   onPostUpdate = async (querySnapshot) => {
@@ -251,11 +294,11 @@ class FeedScreen extends Component {
       <View style={styles.container}>
         <TextInput style={styles.textContainer}
           //onSubmitEditing={this.registerForPushNotificationsAsync}
-          onSubmitEditing={this.sendPushNotification}
+          //onSubmitEditing={this.sendPushNotification}
           placeholder={'this does nothing'}
         />
         <TextInput style={styles.textContainer}
-          onSubmitEditing={this.registerForPushNotificationsAsync}
+          onSubmitEditing={this.sendPushNotification}
           //onSubmitEditing={this.sendPushNotification}
           placeholder={'register token and test'}
         />
@@ -267,8 +310,6 @@ class FeedScreen extends Component {
             )}
           />
         </InputScrollView>
-
-    
       </View>
     );
   }
