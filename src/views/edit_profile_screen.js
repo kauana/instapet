@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
+import {
+  StyleSheet, View, Image,
+} from 'react-native';
 import uuid from 'react-native-uuid';
-import { StyleSheet, View, Image } from 'react-native';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SettingsList from 'react-native-settings-list';
+import { ImagePicker, Permissions } from 'expo';
+import UserPresenter from '../presenters/user_presenter';
 import firebase from '../../firestore';
 import colors from '../colors';
-import { ImagePicker, Permissions } from 'expo';
+
 
 const db = firebase.firestore();
 
@@ -20,9 +24,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonContainer: {
-    flex: 1,
+    flex: 4,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  avatarButtonContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  userImageContainer: {
+    flex: 8,
+    flexDirection: 'row',
+    marginLeft: 10,
+    marginRight: 10,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  userImage: {
+    borderRadius: 60,
+    height: 120,
+    width: 120,
   },
 });
 
@@ -49,13 +72,16 @@ class EditProfileScreen extends Component {
       city: '',
       bio: '',
       avatar: '',
+      hasCameraPermission: false,
+      uploading: false,
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.unsubscribe = db.collection('users').doc(this.userID).onSnapshot(this.onUpdate);
-//    const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
-//    this.setState({ hasCameraPermission: status === 'granted' });
+
+    const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+    this.setState({ hasCameraPermission: status === 'granted' });
   }
 
   componentWillUnmount() {
@@ -64,18 +90,15 @@ class EditProfileScreen extends Component {
     }
   }
 
-  chooseAvatar = async () => {
+  handleTakePhoto = async () => {
+    this.setState({ uploading: true });
+    const result = await ImagePicker.launchCameraAsync();
+    if (!result.cancelled) {
+      this.uploadImage(result.uri);
+    }
+  }
 
-    const result = await ImagePicker.launchImageLibraryAsync();
-    try {
-      if (!result.cancelled) {
-        this.uploadImage(result.uri);
-      }
-    } catch (e) { console.log(e); }
-
-   };
-
- uploadImage = async (uri) => {
+  uploadImage = async (uri) => {
     const blob = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.onload = () => {
@@ -101,14 +124,10 @@ class EditProfileScreen extends Component {
     // We're done with the blob, close and release it
     blob.close();
 
-    const imageURL = await snapshot.ref.getDownloadURL();
+    const avatar = await snapshot.ref.getDownloadURL();
 
-    console.log("imageURL" + imageURL);
-
-    this.setState({ avatar: imageURL });
+    this.setState({ avatar, uploading: false });
   }
-
-
 
   onUpdate = (doc) => {
     this.setState({ ...doc.data() });
@@ -136,12 +155,14 @@ class EditProfileScreen extends Component {
   render() {
     const {
       name, bio, city, avatar,
+      hasCameraPermission, uploading,
     } = this.state;
+    const presenter = new UserPresenter({ avatar });
 
     return (
       <View style={{ backgroundColor: 'white', flex: 1 }}>
         <View style={{ flex: 1, marginTop: 0 }}>
-          <SettingsList borderColor={colors.grey(0.2)} defaultItemSize={50}>
+          <SettingsList borderColor="transparent" defaultItemSize={50}>
             <SettingsList.Header headerText="UPDATE PROFILE" headerStyle={{ color: colors.grey(1), marginTop: 50 }} />
             <SettingsList.Item
               id="name"
@@ -194,12 +215,11 @@ class EditProfileScreen extends Component {
                 />
               )}
             />
+
             <SettingsList.Item
               id="avatar"
               title="Avatar"
-              hasNavArrow={true}
-              value={avatar}
-              onPress={this.chooseAvatar}
+              hasNavArrow={false}
               icon={(
                 <Icon
                   name="image"
@@ -207,9 +227,73 @@ class EditProfileScreen extends Component {
                   color={colors.red(1)}
                   style={styles.icon}
                 />
-              )}
+            )}
             />
           </SettingsList>
+
+          <View style={styles.userImageContainer}>
+            <Image
+              style={styles.userImage}
+              source={{
+                uri: presenter.avatar,
+              }}
+            />
+
+            <View style={styles.avatarButtonContainer}>
+              <Button
+                title=" Upload Photo"
+                activeOpacity={1}
+                underlayColor="transparent"
+                loadingProps={{ size: 'small', color: 'white' }}
+                loading={uploading}
+                buttonStyle={{
+                  height: 50,
+                  width: 180,
+                  backgroundColor: colors.red(1),
+                  borderWidth: 0,
+                }}
+                icon={(
+                  <Icon
+                    name="cloud-upload"
+                    size={24}
+                    color="white"
+                  />
+                )}
+                containerStyle={{ marginVertical: 10 }}
+                titleStyle={{ fontFamily: 'regular', color: 'white' }}
+                onPress={this.handleUploadPhoto}
+              />
+
+              {
+              hasCameraPermission
+                ? (
+                  <Button
+                    title=" Take Photo"
+                    activeOpacity={1}
+                    underlayColor="transparent"
+                    loadingProps={{ size: 'small', color: 'white' }}
+                    loading={uploading}
+                    buttonStyle={{
+                      height: 50,
+                      width: 180,
+                      backgroundColor: colors.red(1),
+                      borderWidth: 0,
+                    }}
+                    icon={(
+                      <Icon
+                        name="camera-iris"
+                        size={24}
+                        color="white"
+                      />
+                    )}
+                    titleStyle={{ fontFamily: 'regular', color: 'white' }}
+                    onPress={this.handleTakePhoto}
+                  />
+                )
+                : null
+            }
+            </View>
+          </View>
 
           <View style={styles.buttonContainer}>
             <Button
