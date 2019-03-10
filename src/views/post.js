@@ -7,7 +7,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import { showMessage } from 'react-native-flash-message';
 import uuid from 'react-native-uuid';
-import { Notifications, Permissions } from 'expo';
 import UserPresenter from '../presenters/user_presenter';
 import colors from '../colors';
 import firebase from '../../firestore';
@@ -244,32 +243,6 @@ const Post = ({ post, user, navigation }) => {
       return;
     }
 
-
-    // need to change the token to the post author's
-    let token = 'ExponentPushToken[vH7dGfALsl3PIQo_kpWM3P]';
-    console.log('hard coded token! change to post user token', token);
-
-    const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
-    const tokenArray = [];
-
-    tokenArray.push({
-      to: token,
-      title: 'hello',
-      body: 'hard coded receiver 1',
-      sound: 'default',
-    });
-
-    token = 'ExponentPushToken[r97VR2I9tyZpzj5z5Gm_4k]';
-    console.log('hard coded token! change to post user token', token);
-
-    tokenArray.push({
-      to: token,
-      title: 'hello',
-      body: 'hard coded  2',
-      sound: 'default',
-    });
-
-
     ref.update({
       commentedByUsers: firebase.firestore.FieldValue.arrayUnion({
         id: uuid.v4(),
@@ -277,27 +250,13 @@ const Post = ({ post, user, navigation }) => {
         content: text,
         timestamp: new Date(),
       }),
-    })
-      .then(() => {
-        showMessage({
-          message: 'Done!',
-          type: 'success',
-        });
-        el.clear();
-      })
-      .catch(error => console.log(error));
-
-    return fetch(PUSH_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(tokenArray),
-      sound: 'default',
-    }).then(response => response.json())
-      .then(responseJson => console.log('response is :', responseJson, 'token is', token))
-      .catch(error => console.error('error is', error));
+    }).then(() => {
+      showMessage({
+        message: 'Done!',
+        type: 'success',
+      });
+      el.clear();
+    }).catch(error => console.log(error));
   };
 
   const likesCount = post.likedByUsers.length;
