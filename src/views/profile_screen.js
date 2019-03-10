@@ -160,7 +160,7 @@ class ProfileScreen extends Component {
     this.unsubscribePosts = null;
     const { navigation } = this.props;
     this.userID = navigation.getParam('userID', 'NO-ID');
-    this.feedRef = db.collection('posts').orderBy('timestamp', 'desc').where('userID', '==', this.userID);
+    this.feedRef = db.collection('posts').where('userID', '==', this.userID);
 
     this.state = {
       isLoading: true,
@@ -223,7 +223,10 @@ class ProfileScreen extends Component {
     });
 
     tabs.routes[0].count = posts.length;
-    this.setState({ tabs, posts });
+
+    const sortedPosts = posts.sort((a, b) => (b.timestamp.toDate() - a.timestamp.toDate()));
+
+    this.setState({ tabs, posts: sortedPosts });
   }
 
   onUpdateUser = (doc) => {
