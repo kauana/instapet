@@ -6,17 +6,13 @@ import {
   FlatList,
   Dimensions,
   View,
-  TouchableOpacity,
-  Text,
   TextInput,
-  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import InputScrollView from 'react-native-input-scroll-view';
+import { Notifications, Permissions } from 'expo';
 import Post from './post';
 import firebase from '../../firestore';
-import {Notifications, Permissions} from 'expo';
-
 
 
 const { width } = Dimensions.get('window');
@@ -83,7 +79,6 @@ const styles = StyleSheet.create({
 });
 
 class FeedScreen extends Component {
-
   static navigationOptions = () => ({
     tabBarIcon: ({ tintColor }) => (
       <Icon
@@ -98,44 +93,36 @@ class FeedScreen extends Component {
     super();
     const appUser = firebase.auth().currentUser.uid;
     this.feedRef = db.collection('posts')
-      .orderBy('timestamp', 'desc')
       .where('followerIDs', 'array-contains', appUser);
     this.unsubscribe = null;
     this.state = {
       posts: [],
       loading: true,
       notification: {},
-    };  
-
+    };
   }
 
 
-
   async registerForPushNotificationsAsync() {
-
-    let { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
 
     // Stop here if the user did not grant permissions
     if (status !== 'granted') {
-      console.log(status, "you didn't grant permission for notification")
+      console.log(status, "you didn't grant permission for notification");
       return;
     }
 
-    
+
     // Get the token that uniquely identifies this device
-    let token = await Notifications.getExpoPushTokenAsync();
+    const token = await Notifications.getExpoPushTokenAsync();
 
-    userID = firebase.auth().currentUser.uid;
-    
-    console.log("feed screen, userID is", userID)
-    console.log("feed screen, token is", token)
-    console.log("current time", Date())
+    const userID = firebase.auth().currentUser.uid;
 
-    firebase.firestore().collection('users').doc(userID).update({ token: token });
+    firebase.firestore().collection('users').doc(userID).update({ token });
 
     /*
     // change token to the post author's token
-    
+
     console.log('post user token is', token)
 
     const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
@@ -160,24 +147,22 @@ class FeedScreen extends Component {
       .then(responseJson => console.log('response is :', responseJson, 'token is', token))
       .catch(error => console.error("error is", error));
       */
-  }    
+  }
 
   async sendPushNotification() {
+    const appUser = firebase.auth().currentUser.uid;
 
-    const appUser = firebase.auth().currentUser.uid
-
-    token = await Notifications.getExpoPushTokenAsync();
+    const token = await Notifications.getExpoPushTokenAsync();
 
     const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
     const tokenArray = [];
 
     tokenArray.push({
       to: token,
-      title: "hello",
-      body: "notification to app user from sendPushNotification feed screen",
-      sound: "default",
-    }
-    )
+      title: 'hello',
+      body: 'notification to app user from sendPushNotification feed screen',
+      sound: 'default',
+    });
     return fetch(PUSH_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -185,17 +170,15 @@ class FeedScreen extends Component {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(tokenArray),
-      sound: "default",
+      sound: 'default',
     }).then(response => response.json())
       .then(responseJson => console.log('response is :', responseJson, 'token is', token))
-      .catch(error => console.error("error is", error));
-
+      .catch(error => console.error('error is', error));
   }
 
 
-
   async componentDidMount() {
-    this.unsubscribe = this.feedRef.onSnapshot(this.onPostUpdate); 
+    this.unsubscribe = this.feedRef.onSnapshot(this.onPostUpdate);
 
     this.registerForPushNotificationsAsync();
     // Handle notifications that are received or selected while the app
@@ -204,25 +187,22 @@ class FeedScreen extends Component {
     // this function will fire on the next tick after the app starts
     // with the notification data.
     this._notificationSubscription = Notifications.addListener(this._handleNotification);
-
   }
 
   _handleNotification = (notification) => {
-    //this.setState({notification: notification});
-    console.log(notification)
-    userID = firebase.auth().currentUser.uid;
+    // this.setState({notification: notification});
+    console.log(notification);
+    const userID = firebase.auth().currentUser.uid;
     this.props.navigation.navigate('Notifications');
-    this.setState({ notification: notification });
+    this.setState({ notification });
 
     firebase.firestore().collection('users').doc(userID).update({ notifications: notification.data });
-
   };
 
 
   componentWillUnmount() {
     this.unsubscribe();
   }
-
 
 
   updateComments = (key, index) => {
@@ -239,8 +219,6 @@ class FeedScreen extends Component {
         contents: commentText,
       }),
     });
-
-    
   }
 
   onPostUpdate = async (querySnapshot) => {
@@ -270,10 +248,11 @@ class FeedScreen extends Component {
         .catch(error => console.log(error)));
     });
 
-
     await Promise.all(promises);
 
-    this.setState({ posts, loading: false });
+    const sortedPosts = posts.sort((a, b) => (b.timestamp.toDate() - a.timestamp.toDate()));
+
+    this.setState({ posts: sortedPosts, loading: false });
   }
 
   onCommentChanged = (text) => {
@@ -281,7 +260,6 @@ class FeedScreen extends Component {
       commentText: text,
     });
   }
-
 
   render() {
     const { posts, loading } = this.state;
@@ -292,15 +270,17 @@ class FeedScreen extends Component {
     }
     return (
       <View style={styles.container}>
-        <TextInput style={styles.textContainer}
-          //onSubmitEditing={this.registerForPushNotificationsAsync}
-          //onSubmitEditing={this.sendPushNotification}
-          placeholder={'this does nothing'}
+        <TextInput
+          style={styles.textContainer}
+          // onSubmitEditing={this.registerForPushNotificationsAsync}
+          // onSubmitEditing={this.sendPushNotification}
+          placeholder="this does nothing"
         />
-        <TextInput style={styles.textContainer}
+        <TextInput
+          style={styles.textContainer}
           onSubmitEditing={this.sendPushNotification}
-          //onSubmitEditing={this.sendPushNotification}
-          placeholder={'register token and test'}
+          // onSubmitEditing={this.sendPushNotification}
+          placeholder="register token and test"
         />
         <InputScrollView>
           <FlatList

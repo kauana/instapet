@@ -7,11 +7,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import { showMessage } from 'react-native-flash-message';
 import uuid from 'react-native-uuid';
+import { Notifications, Permissions } from 'expo';
 import UserPresenter from '../presenters/user_presenter';
 import colors from '../colors';
 import firebase from '../../firestore';
 
-import {Notifications, Permissions} from 'expo';
 
 const { width } = Dimensions.get('window');
 const db = firebase.firestore();
@@ -144,7 +144,6 @@ class Comment extends React.Component {
 
 
   componentDidMount() {
-
     const { comment } = this.props;
 
     db.collection('users').doc(comment.who).get()
@@ -244,33 +243,31 @@ const Post = ({ post, user, navigation }) => {
       });
       return;
     }
-  
-  
-  // need to change the token to the post author's 
-   var token = "ExponentPushToken[vH7dGfALsl3PIQo_kpWM3P]"
-    console.log('hard coded token! change to post user token', token)
+
+
+    // need to change the token to the post author's
+    let token = 'ExponentPushToken[vH7dGfALsl3PIQo_kpWM3P]';
+    console.log('hard coded token! change to post user token', token);
 
     const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
     const tokenArray = [];
 
     tokenArray.push({
       to: token,
-      title: "hello",
-      body: "hard coded receiver 1",
-      sound: "default",
-    }
-    )
+      title: 'hello',
+      body: 'hard coded receiver 1',
+      sound: 'default',
+    });
 
-    token = "ExponentPushToken[r97VR2I9tyZpzj5z5Gm_4k]"
-    console.log('hard coded token! change to post user token', token)
+    token = 'ExponentPushToken[r97VR2I9tyZpzj5z5Gm_4k]';
+    console.log('hard coded token! change to post user token', token);
 
     tokenArray.push({
       to: token,
-      title: "hello",
-      body: "hard coded  2",
-      sound: "default",
-    }
-    )
+      title: 'hello',
+      body: 'hard coded  2',
+      sound: 'default',
+    });
 
 
     ref.update({
@@ -290,18 +287,17 @@ const Post = ({ post, user, navigation }) => {
       })
       .catch(error => console.log(error));
 
-      return fetch(PUSH_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(tokenArray),
-        sound: "default",
-      }).then(response => response.json())
-        .then(responseJson => console.log('response is :', responseJson, 'token is', token))
-        .catch(error => console.error("error is", error));
-
+    return fetch(PUSH_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tokenArray),
+      sound: 'default',
+    }).then(response => response.json())
+      .then(responseJson => console.log('response is :', responseJson, 'token is', token))
+      .catch(error => console.error('error is', error));
   };
 
   const likesCount = post.likedByUsers.length;
@@ -362,7 +358,7 @@ const Post = ({ post, user, navigation }) => {
                       size={24}
                       color={colors.red(1)}
                     />
-            )}
+                )}
                   onPress={unlike}
                 />
               )
@@ -375,7 +371,7 @@ const Post = ({ post, user, navigation }) => {
                       size={24}
                       color={colors.red(1)}
                     />
-            )}
+                )}
                   onPress={like}
                 />
               )
@@ -385,32 +381,32 @@ const Post = ({ post, user, navigation }) => {
           </Text>
         </View>
         { appUser === post.userID
-        && (
-        <View style={styles.leftActions}>
-          <Button
-            buttonStyle={{ backgroundColor: 'transparent' }}
-            icon={(
-              <Icon
-                name="playlist-edit"
-                size={24}
-                color={colors.red(1)}
-              />
-            )}
-            onPress={() => editPost()}
-          />
-          <Button
-            buttonStyle={{ backgroundColor: 'transparent' }}
-            icon={(
-              <Icon
-                name="delete"
-                size={24}
-                color={colors.red(1)}
-              />
-            )}
-            onPress={() => deletePost(post.key)}
-          />
-        </View>
-        )
+            && (
+              <View style={styles.leftActions}>
+                <Button
+                  buttonStyle={{ backgroundColor: 'transparent' }}
+                  icon={(
+                    <Icon
+                      name="playlist-edit"
+                      size={24}
+                      color={colors.red(1)}
+                    />
+                  )}
+                  onPress={() => editPost()}
+                />
+                <Button
+                  buttonStyle={{ backgroundColor: 'transparent' }}
+                  icon={(
+                    <Icon
+                      name="delete"
+                      size={24}
+                      color={colors.red(1)}
+                    />
+                  )}
+                  onPress={() => deletePost(post.key)}
+                />
+              </View>
+            )
         }
       </View>
       <View style={styles.textContainer}>
