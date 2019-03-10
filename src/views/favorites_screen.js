@@ -88,7 +88,6 @@ class FavoritesScreen extends Component {
     super();
     const appUser = firebase.auth().currentUser.uid;
     this.feedRef = db.collection('posts')
-      .orderBy('timestamp', 'desc')
       .where('likedByUsers', 'array-contains', appUser);
     this.unsubscribe = null;
     this.state = {
@@ -152,7 +151,9 @@ class FavoritesScreen extends Component {
 
     await Promise.all(promises);
 
-    this.setState({ posts, loading: false });
+    const sortedPosts = posts.sort((a, b) => (b.timestamp.toDate() - a.timestamp.toDate()));
+
+    this.setState({ posts: sortedPosts, loading: false });
   }
 
   onCommentChanged = (text) => {
