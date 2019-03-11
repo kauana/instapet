@@ -1,5 +1,4 @@
-
-/ Source tutorial: https://itnext.io/how-to-add-fast-realtime-search-to-your-firebase-app-with-algolia-2491f7698d52
+// Source tutorial: https://itnext.io/how-to-add-fast-realtime-search-to-your-firebase-app-with-algolia-2491f7698d52
 // Hashtags http://geekcoder.org/js-extract-hashtags-from-text/
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -53,7 +52,7 @@ exports.onUserFollowedChange = functions.firestore.document('followed/{userID}')
     const newFollowers = after.filter(follower => !before.includes(follower));
 
     if (newFollowers.length === 0) {
-      return
+      return;
     }
 
     (async () => {
