@@ -52,6 +52,10 @@ exports.onUserFollowedChange = functions.firestore.document('followed/{userID}')
     const after = Object.keys(change.after.data());
     const newFollowers = after.filter(follower => !before.includes(follower));
 
+    if (newFollowers.length === 0) {
+      return
+    }
+
     (async () => {
       let pushToken = '';
       try {
