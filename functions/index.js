@@ -52,7 +52,7 @@ exports.onUserFollowedChange = functions.firestore.document('followed/{userID}')
     const newFollowers = after.filter(follower => !before.includes(follower));
 
     if (newFollowers.length === 0) {
-      return;
+      return false;
     }
 
     (async () => {
