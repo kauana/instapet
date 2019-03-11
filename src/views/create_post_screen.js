@@ -142,7 +142,7 @@ class CreatePostScreen extends Component {
     this.setState({ uploading: true });
     const result = await ImagePicker.launchImageLibraryAsync();
     try {
-      if (!result.cancelled) {
+      if (!result.cancelled) {m
         this.uploadImage(result.uri);
       }
     } catch (e) { console.log(e); }

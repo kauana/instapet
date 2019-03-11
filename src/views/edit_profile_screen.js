@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
-import { StyleSheet, View } from 'react-native';
+import uuid from 'react-native-uuid';
+import { StyleSheet, View, Image } from 'react-native';
 import { Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SettingsList from 'react-native-settings-list';
 import firebase from '../../firestore';
 import colors from '../colors';
+import { ImagePicker, Permissions } from 'expo';
 
 const db = firebase.firestore();
 
@@ -52,6 +54,8 @@ class EditProfileScreen extends Component {
 
   componentDidMount() {
     this.unsubscribe = db.collection('users').doc(this.userID).onSnapshot(this.onUpdate);
+//    const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+//    this.setState({ hasCameraPermission: status === 'granted' });
   }
 
   componentWillUnmount() {
@@ -59,6 +63,52 @@ class EditProfileScreen extends Component {
       this.unsubscribe();
     }
   }
+
+  chooseAvatar = async () => {
+
+    const result = await ImagePicker.launchImageLibraryAsync();
+    try {
+      if (!result.cancelled) {
+        this.uploadImage(result.uri);
+      }
+    } catch (e) { console.log(e); }
+
+   };
+
+ uploadImage = async (uri) => {
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = () => {
+        resolve(xhr.response);
+      };
+
+      xhr.onerror = (err) => {
+        console.log(err);
+        reject(new TypeError('Network request failed'));
+      };
+
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
+    });
+
+    const ref = firebase
+      .storage()
+      .ref()
+      .child(uuid.v4());
+    const snapshot = await ref.put(blob);
+
+    // We're done with the blob, close and release it
+    blob.close();
+
+    const imageURL = await snapshot.ref.getDownloadURL();
+
+    console.log("imageURL" + imageURL);
+
+    this.setState({ avatar: imageURL });
+  }
+
+
 
   onUpdate = (doc) => {
     this.setState({ ...doc.data() });
@@ -147,11 +197,9 @@ class EditProfileScreen extends Component {
             <SettingsList.Item
               id="avatar"
               title="Avatar"
-              isEditable
-              hasNavArrow={false}
+              hasNavArrow={true}
               value={avatar}
-              onTextChange={text => this.setState({ avatar: text })}
-              placeholder="https://..."
+              onPress={this.chooseAvatar}
               icon={(
                 <Icon
                   name="image"
