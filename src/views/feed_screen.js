@@ -6,11 +6,11 @@ import {
   FlatList,
   Dimensions,
   View,
-  TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import InputScrollView from 'react-native-input-scroll-view';
 import { Notifications, Permissions } from 'expo';
+import { showMessage } from 'react-native-flash-message';
 import Post from './post';
 import firebase from '../../firestore';
 
@@ -98,112 +98,18 @@ class FeedScreen extends Component {
     this.state = {
       posts: [],
       loading: true,
-      notification: {},
     };
   }
-
-
-  async registerForPushNotificationsAsync() {
-    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-
-    // Stop here if the user did not grant permissions
-    if (status !== 'granted') {
-      console.log(status, "you didn't grant permission for notification");
-      return;
-    }
-
-
-    // Get the token that uniquely identifies this device
-    const token = await Notifications.getExpoPushTokenAsync();
-
-    const userID = firebase.auth().currentUser.uid;
-
-    firebase.firestore().collection('users').doc(userID).update({ token });
-
-    /*
-    // change token to the post author's token
-
-    console.log('post user token is', token)
-
-    const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
-    const tokenArray = [];
-
-    tokenArray.push({
-      to: token,
-      title: "hello",
-      body: "you get new comment",
-      sound: "default",
-    }
-    )
-    return fetch(PUSH_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(tokenArray),
-      sound: "default",
-    }).then(response => response.json())
-      .then(responseJson => console.log('response is :', responseJson, 'token is', token))
-      .catch(error => console.error("error is", error));
-      */
-  }
-
-  async sendPushNotification() {
-    const appUser = firebase.auth().currentUser.uid;
-
-    const token = await Notifications.getExpoPushTokenAsync();
-
-    const PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
-    const tokenArray = [];
-
-    tokenArray.push({
-      to: token,
-      title: 'hello',
-      body: 'notification to app user from sendPushNotification feed screen',
-      sound: 'default',
-    });
-    return fetch(PUSH_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(tokenArray),
-      sound: 'default',
-    }).then(response => response.json())
-      .then(responseJson => console.log('response is :', responseJson, 'token is', token))
-      .catch(error => console.error('error is', error));
-  }
-
 
   async componentDidMount() {
     this.unsubscribe = this.feedRef.onSnapshot(this.onPostUpdate);
 
     this.registerForPushNotificationsAsync();
-    // Handle notifications that are received or selected while the app
-    // is open. If the app was closed and then opened by tapping the
-    // notification (rather than just tapping the app icon to open it),
-    // this function will fire on the next tick after the app starts
-    // with the notification data.
-    this._notificationSubscription = Notifications.addListener(this._handleNotification);
   }
-
-  _handleNotification = (notification) => {
-    // this.setState({notification: notification});
-    console.log(notification);
-    const userID = firebase.auth().currentUser.uid;
-    this.props.navigation.navigate('Notifications');
-    this.setState({ notification });
-
-    firebase.firestore().collection('users').doc(userID).update({ notifications: notification.data });
-  };
-
 
   componentWillUnmount() {
     this.unsubscribe();
   }
-
 
   updateComments = (key, index) => {
     const { commentText } = this.state;
@@ -261,6 +167,39 @@ class FeedScreen extends Component {
     });
   }
 
+  handleNotification = (notification) => {
+    showMessage({
+      message: `${notification.data.title}`,
+      description: `${notification.data.body}`,
+      type: 'success',
+      autoHide: false,
+    });
+  };
+
+  async registerForPushNotificationsAsync() {
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+
+    // Stop here if the user did not grant permissions
+    if (status !== 'granted') {
+      console.log(status, "you didn't grant permission for notification");
+      return;
+    }
+
+    // Get the token that uniquely identifies this device
+    const token = await Notifications.getExpoPushTokenAsync();
+
+    const userID = firebase.auth().currentUser.uid;
+
+    await db.collection('users').doc(userID).update({ token });
+
+    // Handle notifications that are received or selected while the app
+    // is open. If the app was closed and then opened by tapping the
+    // notification (rather than just tapping the app icon to open it),
+    // this function will fire on the next tick after the app starts
+    // with the notification data.
+    this.notificationSubscription = Notifications.addListener(this.handleNotification);
+  }
+
   render() {
     const { posts, loading } = this.state;
     const { navigation } = this.props;
@@ -270,18 +209,6 @@ class FeedScreen extends Component {
     }
     return (
       <View style={styles.container}>
-        <TextInput
-          style={styles.textContainer}
-          // onSubmitEditing={this.registerForPushNotificationsAsync}
-          // onSubmitEditing={this.sendPushNotification}
-          placeholder="this does nothing"
-        />
-        <TextInput
-          style={styles.textContainer}
-          onSubmitEditing={this.sendPushNotification}
-          // onSubmitEditing={this.sendPushNotification}
-          placeholder="register token and test"
-        />
         <InputScrollView>
           <FlatList
             data={posts}
