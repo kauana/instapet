@@ -8,7 +8,6 @@ import { showMessage } from 'react-native-flash-message';
 import firebase from '../../firestore';
 import colors from '../colors';
 
-
 const styles = StyleSheet.create({
   icon: {
     marginLeft: 15,

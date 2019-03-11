@@ -90,6 +90,16 @@ class EditProfileScreen extends Component {
     }
   }
 
+  handleUploadPhoto = async () => {
+    this.setState({ uploading: true });
+    const result = await ImagePicker.launchImageLibraryAsync();
+    try {
+      if (!result.cancelled) {
+        this.uploadImage(result.uri);
+      }
+    } catch (e) { console.log(e); }
+  }
+
   handleTakePhoto = async () => {
     this.setState({ uploading: true });
     const result = await ImagePicker.launchCameraAsync();

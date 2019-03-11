@@ -55,7 +55,7 @@ class CreatePostScreen extends Component {
     this.unsubscribeFollowed = null;
     this.unsubscribePost = null;
     const { navigation } = this.props;
-    this.userID = navigation.getParam('userID', 'NO-ID');
+    this.userID = null;
     this.postID = navigation.getParam('postID', null);
     this.writeRef = db.collection('posts');
 
@@ -72,6 +72,7 @@ class CreatePostScreen extends Component {
     const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
     this.setState({ hasCameraPermission: status === 'granted' });
 
+    this.userID = firebase.auth().currentUser.uid;
     this.unsubscribeFollowed = db.collection('followed').doc(this.userID).onSnapshot(this.onUpdateFollowed);
     this.unsubscribePost = db.collection('posts').doc(this.postID).onSnapshot(this.onUpdatePost);
   }
@@ -97,7 +98,7 @@ class CreatePostScreen extends Component {
   }
 
   onUpdatePost = (doc) => {
-    const post = doc.data();
+    const { followerIDs, ...post } = doc.data();
     this.setState({ ...post });
   }
 
@@ -142,7 +143,7 @@ class CreatePostScreen extends Component {
     this.setState({ uploading: true });
     const result = await ImagePicker.launchImageLibraryAsync();
     try {
-      if (!result.cancelled) {m
+      if (!result.cancelled) {
         this.uploadImage(result.uri);
       }
     } catch (e) { console.log(e); }
