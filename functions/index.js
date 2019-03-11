@@ -1,5 +1,6 @@
-// Source tutorial: https://itnext.io/how-to-add-fast-realtime-search-to-your-firebase-app-with-algolia-2491f7698d52
+// Full-text search: https://itnext.io/how-to-add-fast-realtime-search-to-your-firebase-app-with-algolia-2491f7698d52
 // Hashtags http://geekcoder.org/js-extract-hashtags-from-text/
+// Notifications: https://docs.expo.io/versions/latest/guides/push-notifications/
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const Promise = require('promise');

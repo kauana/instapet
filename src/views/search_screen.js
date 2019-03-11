@@ -28,7 +28,6 @@ class PostLoader extends Component {
 
   componentDidMount() {
     const { postID } = this.props;
-    console.log(postID);
     db.collection('posts').doc(postID).get().then((postSnapshot) => {
       const post = {
         key: postID,
