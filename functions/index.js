@@ -46,6 +46,82 @@ exports.processHashtagsUpdate = functions.firestore.document('posts/{postID}')
       .catch(err => console.log('ERROR ALGOLIA post ADD', err));
   });
 
+const notify = async (userID, messages) => {
+  let pushToken = '';
+  try {
+    const userDoc = await db.collection('users').doc(userID).get();
+    console.log('user ===> ', userDoc.data());
+    pushToken = userDoc.data().token;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+
+  if (!Expo.isExpoPushToken(pushToken)) {
+    console.error(`Push token ${pushToken} is not a valid Expo push token`);
+    return false;
+  }
+
+  const messagesToSend = messages.map(message => ({
+    to: pushToken,
+    sound: 'default',
+    ...message,
+    data: message,
+  }));
+
+  const chunks = expo.chunkPushNotifications(messagesToSend);
+  const tickets = [];
+  // Send the chunks to the Expo push notification service. There are
+  // different strategies you could use. A simple one is to send one chunk at a
+  // time, which nicely spreads the load out over time:
+  for (const chunk of chunks) {
+    try {
+      const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+      console.log(ticketChunk);
+      tickets.push(...ticketChunk);
+      // NOTE: If a ticket contains an error code in ticket.details.error, you
+      // must handle it appropriately. The error codes are listed in the Expo
+      // documentation:
+      // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  return true;
+};
+
+exports.onPostLike = functions.firestore.document('posts/{postID}')
+  .onUpdate((change, context) => {
+    const before = change.before.data().likedByUsers;
+    const after = change.after.data().likedByUsers;
+    const newLikes = after.filter(liker => !before.includes(liker));
+
+    if (newLikes.length === 0) {
+      return false;
+    }
+
+    return (async () => {
+      const messages = [];
+      for (const liker of newLikes) {
+        let likerName = '<someone>';
+        try {
+          const likerDoc = await db.collection('users').doc(liker).get();
+          likerName = likerDoc.data().username;
+        } catch (e) {
+          console.error(e);
+        }
+
+        messages.push({
+          title: 'Someone likes your post!',
+          body: `@${likerName} liked your post.`,
+        });
+      }
+
+      return notify(change.after.data().userID, messages);
+    })();
+  });
+
 exports.onUserFollowedChange = functions.firestore.document('followed/{userID}')
   .onUpdate((change, context) => {
     const before = Object.keys(change.before.data());
@@ -56,24 +132,8 @@ exports.onUserFollowedChange = functions.firestore.document('followed/{userID}')
       return false;
     }
 
-    (async () => {
-      let pushToken = '';
-      try {
-        const userDoc = await db.collection('users').doc(context.params.userID).get();
-        console.log('user ===> ', userDoc.data());
-        pushToken = userDoc.data().token;
-      } catch (e) {
-        console.error(e);
-        return false;
-      }
-
+    return (async () => {
       const messages = [];
-      if (!Expo.isExpoPushToken(pushToken)) {
-        console.error(`Push token ${pushToken} is not a valid Expo push token`);
-        return false;
-      }
-
-      // Construct a message (see https://docs.expo.io/versions/latest/guides/push-notifications.html)
       for (const follower of newFollowers) {
         let followerName = '<someone>';
         try {
@@ -83,39 +143,13 @@ exports.onUserFollowedChange = functions.firestore.document('followed/{userID}')
           console.error(e);
         }
 
-        const data = {
+        messages.push({
           title: 'You have a new follower!',
           body: `@${followerName} is now following you.`,
-        };
-
-        messages.push({
-          to: pushToken,
-          sound: 'default',
-          ...data,
-          data,
         });
       }
 
-      const chunks = expo.chunkPushNotifications(messages);
-      const tickets = [];
-      // Send the chunks to the Expo push notification service. There are
-      // different strategies you could use. A simple one is to send one chunk at a
-      // time, which nicely spreads the load out over time:
-      for (const chunk of chunks) {
-        try {
-          const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-          console.log(ticketChunk);
-          tickets.push(...ticketChunk);
-          // NOTE: If a ticket contains an error code in ticket.details.error, you
-          // must handle it appropriately. The error codes are listed in the Expo
-          // documentation:
-          // https://docs.expo.io/versions/latest/guides/push-notifications#response-format
-        } catch (error) {
-          console.error(error);
-        }
-      }
-
-      return true;
+      return notify(context.params.userID, messages);
     })();
   });
 
