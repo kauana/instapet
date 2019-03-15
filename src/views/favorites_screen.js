@@ -151,7 +151,12 @@ class FavoritesScreen extends Component {
 
     await Promise.all(promises);
 
-    const sortedPosts = posts.sort((a, b) => (b.timestamp.toDate() - a.timestamp.toDate()));
+    const sortedPosts = posts.sort((a, b) => {
+      if (b.timestamp && a.timestamp) {
+        return b.timestamp.toDate() - a.timestamp.toDate();
+      }
+      return 0;
+    });
 
     this.setState({ posts: sortedPosts, loading: false });
   }

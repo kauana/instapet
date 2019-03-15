@@ -224,7 +224,12 @@ class ProfileScreen extends Component {
 
     tabs.routes[0].count = posts.length;
 
-    const sortedPosts = posts.sort((a, b) => (b.timestamp.toDate() - a.timestamp.toDate()));
+    const sortedPosts = posts.sort((a, b) => {
+      if (b.timestamp && a.timestamp) {
+        return b.timestamp.toDate() - a.timestamp.toDate();
+      }
+      return 0;
+    });
 
     this.setState({ tabs, posts: sortedPosts });
   }
